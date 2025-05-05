@@ -1,27 +1,43 @@
 import time
-
+import network
+import json
 from umqtt.simple import MQTTClient
 
 #NETWORK_NAME = 'DIGIFIBRA-QFzA'
 #NETWORK_PASSWORD = 'cFCE45CtEGkY'
-NETWORK_NAME = 'MOVISTAR_9CA0'
-NETWORK_PASSWORD = '7u34A7v4Ju4A4Wx7A977'
+#NETWORK_NAME = 'MOVISTAR_9CA0'
+#NETWORK_PASSWORD = '7u34A7v4Ju4A4Wx7A977'
+
 
 def do_connect():
-    import network
+    with open('wifi_config.json', 'r') as file:
+        wifi_config = json.load(file)
+    print(wifi_config)
+
     wlan = network.WLAN(network.WLAN.IF_STA)
     wlan.active(True)
     if not wlan.isconnected():
-        print('connecting to# network...')
-        wlan.connect(NETWORK_NAME, NETWORK_PASSWORD)
+        print('connecting to network...')
+        wlan.connect(wifi_config['SSID'], wifi_config['password'])
         while not wlan.isconnected():
             print("Esperando a la conexión wifi...")
             time.sleep(1)
     print('Configuración de red:', wlan.ipconfig('addr4'))
 
 do_connect()
-mqttClient = MQTTClient(client_id="umqtt_client", server="192.168.1.50", port="1883", user="YmU1QlMwHPJ7ubTB1mHL", password="")
+
+with open('thingsboard_config.json', 'r') as file:
+    thingsboard_config = json.load(file)
+print(thingsboard_config)
+
+mqttClient = MQTTClient(client_id="umqtt_client",
+    server=thingsboard_config['server_ip'],
+    port=thingsboard_config['server_port'],
+    user=thingsboard_config['device_access_token'],
+    password=""
+)
 mqttClient.connect()
+
 mqttClient.publish(b"v1/devices/me/telemetry", b"""{"temperature":245}""")
 #    ^
 #    |

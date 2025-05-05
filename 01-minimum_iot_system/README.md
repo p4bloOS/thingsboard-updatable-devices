@@ -80,3 +80,5 @@ mpremote mip install umqtt.simple
 cd TFG/01-minimum_iot_system/devices/simple-micropython-mqtt-client
 mpremote fs cp main.py :main.py
 ```
+
+picocom /dev/ttyUSB0 -b115200
