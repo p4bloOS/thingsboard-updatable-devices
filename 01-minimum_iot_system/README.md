@@ -81,4 +81,16 @@ cd TFG/01-minimum_iot_system/devices/simple-micropython-mqtt-client
 mpremote fs cp main.py :main.py
 ```
 
+2.4. Edita los archivos de configuración wifi_config.json y thingsboard_config.json, y súbelos a la placa:
+```
+mpremote fs cp wifi_config.json :wifi_config.json
+mpremote fs cp thingsboard_config.json :thingsboard_config.json
+```
+
+2.5. Reinicia el programa:
+```
+mpremote soft-reset
+
+```
+
 picocom /dev/ttyUSB0 -b115200

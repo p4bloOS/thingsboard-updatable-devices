@@ -2,6 +2,7 @@ import time
 import network
 import json
 from umqtt.simple import MQTTClient
+import random
 
 #NETWORK_NAME = 'DIGIFIBRA-QFzA'
 #NETWORK_PASSWORD = 'cFCE45CtEGkY'
@@ -37,9 +38,13 @@ mqttClient = MQTTClient(client_id="umqtt_client",
     password=""
 )
 mqttClient.connect()
+print("Conected to Thingsboard platform")
+random_value = random.randint(0,8)
 
-mqttClient.publish(b"v1/devices/me/telemetry", b"""{"temperature":245}""")
+mqttClient.publish(b"v1/devices/me/telemetry", b"""{"random_value":%d}""" % random_value)
 #    ^
 #    |
 #    *-- equivalente a: mosquitto_pub -d -q 1 -h "YOUR_TB_HOST" -p "1883" \
 #        -t "v1/devices/me/telemetry" -u "YOUR_ACCESS_TOKEN" -m {"temperature":245}
+
+print("Mensaje enviado (valor %d)" % random_value)
