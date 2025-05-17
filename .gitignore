@@ -1,3 +1,3 @@
 pyvenv/
-01-minimum_iot_system/platform/mytb-data/
-01-minimum_iot_system/platform/mytb-logs/
+mytb-data/
+mytb-logs/
