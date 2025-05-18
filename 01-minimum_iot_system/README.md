@@ -16,6 +16,8 @@ En el fichero `devices/my-esp32-device/thingsboard_config.json` se define la IP 
 Levantar el contenedor de Thingsboard por primera vez:
 ```bash
 cd TFG/01-minimum_io_system/plataform
+mkdir -p ../../mytb-data && sudo chown -R 799:799 ../../mytb-data
+mkdir -p ../../mytb-logs && sudo chown -R 799:799 ../../mytb-logs
 docker compose up -d
 # interfaz web escuchando en http://localhost:8080/
 ```
