@@ -15,6 +15,7 @@ def request_firmware_chunk():
     # Solicitud de un chunck de actualización
     mqtt_client.publish(f"v2/fw/request/{self.__firmware_request_id}/chunk/{self.__current_chunk}", payload=payload, qos=1)
 
+
 def dummy_upgrade(version_from, version_to):
     print(f"Updating from {version_from} to {version_to}:")
     for x in range(5):

@@ -1,4 +1,5 @@
 from umqtt.simple import MQTTClient
+import json
 
 
 # Esta clase tengo que desacloplarla del mqtt_client, e incluirla en ThingsboardOTAClient,
@@ -22,6 +23,11 @@ class OTAUpdater:
     UPDATED_ST = "UPDATED"
     FAILED_ST = "FAILED"
 
+    def _load_settings():
+        print("Cargando settings")
+
+    def _apply_update():
+        print("Aplicando actualización")
 
     def _report_state(self, state: str):
         msg = json.dumps({
@@ -31,13 +37,13 @@ class OTAUpdater:
         }).encode('utf-8')
         self.mqtt_client.publish("v1/devices/me/telemetry", msg)
 
-    def __init__(self, mqtt_client, chunk_size, request_id_a, request_id_b):
+    def __init__(self, mqtt_client, chunk_size, request_id_attrs=128, request_id_firmware=129):
         fw_info = utils.get_firmware_info()
         self.current_fw_title = fw_info['title']
         self.current_fw_version = fw_info['version']
         self.mqtt_client = mqtt_client
-        self.request_id_attrs = request_id_a
-        self.request_id_firmware = request_id_b
+        self.request_id_attrs = request_id_attrs
+        self.request_id_firmware = request_id_firmware
         self.firmware_data = b''
         self.chunk_size = chunk_size
         self.expected_chunk = -1
@@ -89,7 +95,6 @@ class OTAUpdater:
                     print("hash received: ", self.hash_recv)
                     print(self.firmware_data)
 
-
     def prepare_for_ota(self):
         """Realiza las suscripciones y publicaciones necesarias para intercambiar
         mensajes en un proceso de OTA posterior. """
@@ -109,14 +114,53 @@ class OTAUpdater:
 
 
 
+
 class ThingsBoardOTAClient(MQTTClient):
 
     # Sobreescribir set_callback solamente
+    #
+    next_request_id = 0
 
     def get_free_request_id():
 
-    def __init__(self):
-        self.request_id = 0
+
+
+    def __init__(
+        self,
+        server,
+        port,
+        access_token,
+        firmware_chunk_size
+    ):
         print("Objeto Client creado")
+        super().__init__(
+            client_id="ota_client_" + access_token,
+            server=server,
+            port=port,
+            user=access_token,
+            password="" #, keepalive, ssl, ssl_params
+        )
+
+        self.ota_updater = OTAUpdater(
+            self,
+            chunk_size=firmware_chunk_size,
+        )
+
+        super().set_callback(self.ota_updater.on_message_callback)
+
+        super().connect()
+
+        self.ota_updater.prepare_for_ota()
+
+
+    def set_callback(self, f):
+        """Overrides set_callback method from MQTTClient.
+        Set up a callback for received subscription messages, while keeping the existing callback to handle OTA updates.
+        """
+        def callback_func(topic, msg):
+            self.ota_updater.on_message_callback(topic, msg)
+            f(topic, msg)
+        super().set_callback(callback_func)
+
 
 client = ThingsBoardOTAClient()
