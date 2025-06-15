@@ -1,10 +1,10 @@
 # 01-minimum_iot_system
 
-Un sistema IoT mínimo como primera toma de contacto con la plataforma Thingsboard y el entorno Micropython en la parte del dispositivo. El dispositivo es una placa ESP-32 que envía un número random a la plataforma cada 10 segundos. La plataforma muestra la evolución de dicho valor a lo largo del tiempo.
+Un sistema IoT mínimo como primera toma de contacto con la plataforma Thingsboard y el entorno Micropython en la parte del dispositivo. El dispositivo es una placa de desarrollo con Micropython (ha sido robado con una ESP-32) que envía un número random a la plataforma cada 10 segundos. La plataforma muestra la evolución de dicho valor a lo largo del tiempo.
 
-El dispositivo intentará conectarse a la red wifi cuyas credenciales se configuran en el fichero `devices/my-esp32-device/wifi_config.json`.
+El dispositivo intentará conectarse a la red wifi cuyas credenciales se configuran en el fichero `devices/micropython/wifi_config.json`.
 
-En el fichero `devices/my-esp32-device/thingsboard_config.json` se define la IP y el puerto del servidor Thingsboard, junto con el *access token* del dispositivo que previamente se ha de crear en la plataforma.
+En el fichero `devices/micropython/thingsboard_config.json` se define la IP y el puerto del servidor Thingsboard, junto con el *access token* del dispositivo que previamente se ha de crear en la plataforma.
 
 `platform/resources/simple_dashboard.json` contiene un panel importable desde Thingsboard con el cual se puede visualizar la variable emitida por el dispositivo.
 
