@@ -15,7 +15,7 @@ En el fichero `devices/micropython/thingsboard_config.json` se define la IP y el
 
 Levantar el contenedor de Thingsboard por primera vez:
 ```bash
-cd TFG/01-minimum_io_system/plataform
+cd TFG/platform
 mkdir -p mytb-data && sudo chown -R 799:799 mytb-data
 mkdir -p mytb-logs && sudo chown -R 799:799 mytb-logs
 docker compose up -d
@@ -63,7 +63,7 @@ mpremote mip install umqtt.simple
 
 Instalar el programa principal en la placa:
 ```bash
-cd TFG/01-minimum_iot_system/devices/simple-micropython-mqtt-client
+cd TFG/devices/micropython
 mpremote fs cp main.py :main.py
 ```
 
