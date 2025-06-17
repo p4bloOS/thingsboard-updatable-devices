@@ -16,8 +16,8 @@ En el fichero `devices/micropython/thingsboard_config.json` se define la IP y el
 Levantar el contenedor de Thingsboard por primera vez:
 ```bash
 cd TFG/01-minimum_io_system/plataform
-mkdir -p ../../mytb-data && sudo chown -R 799:799 ../../mytb-data
-mkdir -p ../../mytb-logs && sudo chown -R 799:799 ../../mytb-logs
+mkdir -p mytb-data && sudo chown -R 799:799 mytb-data
+mkdir -p mytb-logs && sudo chown -R 799:799 mytb-logs
 docker compose up -d
 # interfaz web escuchando en http://localhost:8080/
 ```
