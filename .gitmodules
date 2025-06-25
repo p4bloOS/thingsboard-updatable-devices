@@ -1,0 +1,3 @@
+[submodule "devices/micropython/src/external/thingsboard-micropython-client-sdk"]
+	path = devices/micropython/src/external/thingsboard-micropython-client-sdk
+	url = https://github.com/thingsboard/thingsboard-micropython-client-sdk.git

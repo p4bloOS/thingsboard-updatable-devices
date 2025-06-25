@@ -48,10 +48,22 @@ Para recibir recibir los datos del dispositivo, se puede crear en Thingsboard un
 
 *Probado en una placa ESP32-WROOM con Micropython instalado.*
 
-Crear un entorno virtual de Python e instalar **mpremote**:
+Crear un entorno virtual de Python:
 ```bash
 cd TFG/
-python3 -m venv py_venv
+python3 -m venv venv # crear entorno virtual
+```
+
+Configurar el "venv" para ayudar al LSP de nuestro IDE a captar las referencias:
+```bash
+site_packages_dir="$(./venv/bin/python -c "import site; print(site.getsitepackages()[0])")"
+realpath devices/micropython/src/external/thingsboard-micropython-client-sdk/ \
+> "${site_packages_dir}/tb-client-lib.pth"
+./venv/bin/pip install micropython-esp32-stubs==1.24.1.post2
+```
+
+Instalar **mpremote**:
+```bash
 source py_venv/bin/activate
 pip install mpremote
 ```
