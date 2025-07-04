@@ -59,6 +59,7 @@ Configurar el "venv" para ayudar al LSP de nuestro IDE a captar las referencias:
 site_packages_dir="$(./venv/bin/python -c "import site; print(site.getsitepackages()[0])")"
 realpath devices/micropython/src/external/thingsboard-micropython-client-sdk/ \
 > "${site_packages_dir}/tb-client-lib.pth"
+realpath devices/micropython/src/lib/ > "${site_packages_dir}/my-lib.pth"
 ./venv/bin/pip install micropython-esp32-stubs==1.24.1.post2
 ```
 
@@ -73,14 +74,23 @@ Instalar la dependencia **umqtt.simple** en el dispositivo:
 mpremote mip install umqtt.simple
 ```
 
-Instalar el programa principal en la placa:
+Editar los archivos de configuración del directorio config:
+- ota_config.json
+- thingsboard_config.json
+- wifi_config.json
+
+Borrar todo todos los ficheros existentes en el dispositivo:
 ```bash
-cd TFG/devices/micropython
-mpremote fs cp main.py :main.py
+mpremote rm -rv :/
 ```
 
-Subir los archivos de configuración al dispositivo:
+Instalar el proyecto en la placa:
 ```bash
-mpremote fs cp wifi_config.json :wifi_config.json
-mpremote fs cp thingsboard_config.json :thingsboard_config.json
+./devices/micropython/install.sh
+```
+
+Actualizar los archivos de configuración:
+```bash
+mpremote fs cp devices/micropython/config/* :config/
+mpremote fs cp devices/micropython/config/* :config/
 ```

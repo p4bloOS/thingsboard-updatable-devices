@@ -1,9 +1,15 @@
 import time
 import machine
-from tb_device_mqtt import TBDeviceMqttClient
-import utils
 import random
 import json
+
+import sys
+import lib.umqtt
+sys.modules['umqtt']=lib.umqtt
+
+from tb_device_mqtt import TBDeviceMqttClient
+
+import utils
 
 
 # Thingsboard MQTT client
@@ -29,11 +35,6 @@ if __name__ == "__main__":
     led_pin = machine.Pin(2, machine.Pin.OUT)
     led_pin.off()
 
-    fw_metada = utils.read_firmware_metadata()
-    client.current_firmware_info = {
-        "current_fw_title" : fw_metada["title"],
-        "current_fw_version" : fw_metada["version"]
-    }
 
     while True:
         current_time = time.ticks_ms()
@@ -43,7 +44,7 @@ if __name__ == "__main__":
 
         # Led signal
         led_pin.on()
-        time.sleep_ms(500)
+        time.sleep_ms(5000)
         led_pin.off()
 
         utils.wait_until(next_time)

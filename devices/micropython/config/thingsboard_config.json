@@ -1,5 +1,5 @@
 {
-  "server_ip": "",
-  "server_port": "",
-  "device_access_token": ""
+  "server_ip": "192.168.1.139",
+  "server_port": "1883",
+  "device_access_token": "LVgsKM2ShspRxjBREnYK"
 }

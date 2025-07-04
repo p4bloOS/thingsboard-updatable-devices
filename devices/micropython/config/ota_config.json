@@ -1,5 +1,6 @@
 {
   "chunk_size": "",
-  "server_port": "",
-  "device_access_token": ""
+  "tmp_filename": "new_firmware.tar.gz",
+  "excluded_files": [],
+  "delete": []
 }
