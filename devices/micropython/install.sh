@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
-set -eux
+set -eu
 
 cd $(dirname $0)
-pwd
 
+# Dependencias
 mpremote mkdir lib || true
 mpremote cp src/external/thingsboard-micropython-client-sdk/{umqtt,sdk_utils,tb_device_mqtt,provision_client}.py :lib/
+mpremote mip install package.json
 
 # Código fuente de este proyecto
 mpremote cp src/boot.py :/
 mpremote cp src/main.py :/
-mpremote cp src/utils.py :lib/
+mpremote cp src/lib/utils.py :lib/
 
 # Configuración
 mpremote mkdir config || true

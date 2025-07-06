@@ -2,18 +2,11 @@ import time
 import machine
 import random
 import json
-
-import sys
-import lib.umqtt
-sys.modules['umqtt']=lib.umqtt
-
-from tb_device_mqtt import TBDeviceMqttClient
-
 import utils
 
 
 # Thingsboard MQTT client
-client = utils.get_thingsboard_client()
+client = utils.get_updatable_thingsboard_client()
 
 
 def publish_random_value():
@@ -23,20 +16,30 @@ def publish_random_value():
     """
     random_value = random.randint(0,8)
     telemetry = {"random_value" : random_value}
+    print("Enviando valor random")
     client.send_telemetry(telemetry)
-    print("Telemtría enviada enviada: %s)" % json.dumps(telemetry))
+    print("Telemetría enviada enviada: %s)" % json.dumps(telemetry))
+
+def on_attributes_change(result, exception):
+    if exception is not None:
+        print("Exception: " + str(exception))
+    else:
+        print(result)
 
 
 if __name__ == "__main__":
 
-    utils.network_connect()
     client.connect()
+    print("Conexión establecida con la plataforma Thingsboard")
+
+    client.subscribe_to_all_attributes(on_attributes_change)
 
     led_pin = machine.Pin(2, machine.Pin.OUT)
     led_pin.off()
 
 
     while True:
+
         current_time = time.ticks_ms()
         next_time = time.ticks_add(current_time, 5000)
 
@@ -44,7 +47,8 @@ if __name__ == "__main__":
 
         # Led signal
         led_pin.on()
-        time.sleep_ms(5000)
+        time.sleep_ms(500)
         led_pin.off()
 
+        client.wait_for_msg()
         utils.wait_until(next_time)

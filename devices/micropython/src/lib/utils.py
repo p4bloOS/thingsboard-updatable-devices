@@ -7,7 +7,13 @@ import network
 import json
 from machine import reset
 from time import sleep
+import os
 from sdk_utils import verify_checksum
+
+import sys
+import lib.umqtt
+sys.modules['umqtt']=lib.umqtt
+
 from tb_device_mqtt import (
     TBDeviceMqttClient,
     ATTRIBUTES_TOPIC,
@@ -22,6 +28,9 @@ import deflate
 import tarfile
 
 METADATA_FILE_NAME = "FW_METADATA.json"
+
+# Sufijo para crear el archivo de metadatos asociado al paquete OTA recibido
+EXPECTED_METADATA_SUFFIX = ".metadata.json"
 
 def read_config_file(file_name: str) -> dict:
     """
@@ -109,6 +118,13 @@ class UpdatableTBMqttClient(TBDeviceMqttClient):
             with open(self.fw_file_name, "wb") as firmware_file:
                 firmware_file.write(self.firmware_data)
 
+            expected_fw_metadata = {
+                "title": self.firmware_info.get(FW_TITLE_ATTR),
+                "version": self.firmware_info.get(FW_VERSION_ATTR)
+            }
+            with open(self.fw_file_name + EXPECTED_METADATA_SUFFIX, "wb") as firmware_metadata_file:
+                firmware_metadata_file.write(json.dumps(expected_fw_metadata))
+
             self.firmware_received = True
             reset()
         else:
@@ -150,39 +166,101 @@ def get_updatable_thingsboard_client() -> UpdatableTBMqttClient:
     return client
 
 
-def install_ota_package(ota_file, ota_config):
-
-    decompressed_file = deflate.DeflateIO(ota_file, deflate.GZIP)
-    files = tarfile.TarFile(fileobj=decompressed_file)
-
-    # Verificar que sea un tar.gz de verdad
-    #
-    #
-    # Leer archivos del paquete (FW_METADATA.json):
-    metadata_found = False
-    for f in files:
-        if f.name == METADATA_FILE_NAME:
-            metadata_found = True
-
-            break
-    if metadata_found == False:
-        raise RuntimeError(f"'{METADATA_FILE_NAME} not found in OTA package'")
+def check_tar_gz_format(ota_file_path):
+    """
+    Comprueba que un sigue el formato TAR.GZ, lanzando una excepción en caso negativo.
+    """
+    with open(ota_file_path, 'rb') as ota_file:
+        decompressed_file = deflate.DeflateIO(ota_file, deflate.GZIP)
+        tar_file = tarfile.TarFile(fileobj=decompressed_file)
+        try:
+            # Esto dará error si el archivo no sigue el formato tar gz
+            tar_file.next()
+        except Exception as e :
+            raise RuntimeError("No se puede leer el paquete OTA como un archivo en"
+               f" formato .tar.gz: {e}")
 
 
+def read_fw_metadata_json(json_file) -> dict:
+    """
+    Retorna un diccionario a partir de un archivo JSON.
+    Lanza una excepción si el archivo no se puede leer como JSON o si no contiene
+    los atributos "title" y "version".
+    """
+    try:
+        fw_metadata = json.loads(json_file.read())
+    except ValueError as e:
+        raise ValueError(f"Error mientras se cargaba el fichero JSON de metadatos: {e}")
+    if ( 'title' not in fw_metadata or 'version' not in fw_metadata):
+        raise KeyError("No se han encontrado los atributos esperados en FW_METADATA.json "
+            "(\"title\" y \"version\")")
+    return fw_metadata
 
-    #
-    #   El FW_METADATA.json del paquete debe coincidir con el title y version
-    #   reportadas por Thingsboard (deben guardarse en otro archivo antes de reinciar...,
-    #   un archivo tipo new_firmware.tar.gz.thingsboard_info)
-    #
-    # Leer configuración de OTA
-    # Aplicar OTA
-    # Cambiar FW_METADATA.json
-    # Borrar paquete
+
+def check_metadata_in_ota_file(ota_file_path):
+    """
+    Inspecciona como un TAR.GZ un fichero de OTA y comprueba que contenga dentro el
+    fichero FW_METADATA.json.
+    Los campos "title" y "version" de FW_METADATA.json deberán coincidir con los reportados
+    con la plataforma antes del reincio, almacenados un fichero "<ota_file_name>.metadata.json".
+    Lanza una excepción si no se superan las comprobaciones.
+    """
+
+    metadata_inside_ota_file = None
+    with open(ota_file_path, 'rb') as ota_file:
+        decompressed_file = deflate.DeflateIO(ota_file, deflate.GZIP)
+        tar_file = tarfile.TarFile(fileobj=decompressed_file)
+        for file_entry in tar_file:
+            if file_entry.name == METADATA_FILE_NAME:
+                metadata_file = tar_file.extractfile(file_entry)
+                metadata_inside_ota_file = read_fw_metadata_json(metadata_file)
+                break
+    if metadata_inside_ota_file == None:
+        raise ValueError(f"'{METADATA_FILE_NAME} no encontrado en el paquete OTA.'")
+
+    with open(ota_file_path + EXPECTED_METADATA_SUFFIX, 'rb') as expected_metadata_file:
+        expected_metadata = read_fw_metadata_json(expected_metadata_file)
+
+    if metadata_inside_ota_file != expected_metadata:
+        raise ValueError("Título y versión de firmware del paquete recibido no coinciden con los "
+            "reportados por la plataforma")
 
 
+def delete_ota_package(ota_file_path):
+    """
+    Elimina el paquete OTA y su fichero de metadatos asociado.
+    """
+    os.remove(ota_file_path)
+    os.remove(ota_file_path + EXPECTED_METADATA_SUFFIX)
 
-    return
+
+def install_ota_package(ota_file_path, ota_config):
+    """
+    Aplica el paquete OTA sobreescribiendo el sistema de ficheros.
+    """
+
+    with open(ota_file_path, 'rb') as ota_file:
+        decompressed_file = deflate.DeflateIO(ota_file, deflate.GZIP)
+        tar_file = tarfile.TarFile(fileobj=decompressed_file)
+        for file_entry in tar_file:
+            file_name = file_entry.name
+            print(file_name)
+            if file_name in ota_config['excluded_files']:
+                item_type = 'directorio' if file_name.endswith('/') else 'fichero'
+                print(f'Omitiendo {item_type} {file_name}')
+                continue
+            if file_entry.type == tarfile.DIRTYPE:
+                try:
+                    os.mkdir(file_entry.name[:-1])
+                except OSError as e:
+                    if e.errno == 17:
+                        print('El directorio ya existe')
+                    else:
+                        raise e
+            else:
+                file = tar_file.extractfile(file_entry)
+                with open(file_entry.name, "wb") as of:
+                    of.write(file.read())
 
 
 def wait_until(t):

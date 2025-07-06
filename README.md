@@ -1,4 +1,4 @@
-# 01-minimum_iot_system
+# 02-basic_ota_update
 
 Un sistema IoT mínimo como primera toma de contacto con la plataforma Thingsboard y el entorno Micropython en la parte del dispositivo. El dispositivo es una placa de desarrollo con Micropython (ha sido robado con una ESP-32) que envía un número random a la plataforma cada 10 segundos. La plataforma muestra la evolución de dicho valor a lo largo del tiempo.
 
@@ -12,6 +12,13 @@ En el fichero `devices/micropython/thingsboard_config.json` se define la IP y el
 ---
 
 ## Plataforma
+
+Clonar este repositorio, entrar en él y bajar sus submódulos
+```bash
+git clone -b 02-basic_ota_update https://github.com/p4bloOS/TFG.git
+cd TFG/
+git submodule update --init --recursive
+```
 
 Levantar el contenedor de Thingsboard por primera vez:
 ```bash
