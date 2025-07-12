@@ -1,12 +1,11 @@
 # 02-basic_ota_update
 
-Un sistema IoT mínimo como primera toma de contacto con la plataforma Thingsboard y el entorno Micropython en la parte del dispositivo. El dispositivo es una placa de desarrollo con Micropython (ha sido robado con una ESP-32) que envía un número random a la plataforma cada 10 segundos. La plataforma muestra la evolución de dicho valor a lo largo del tiempo.
+Implementación de una actualización OTA en un dispositivo con Micropython, usando Thingsboard como plataforma, a la cual se conecta el dispositivo a través de wifi y MQTT.
 
-El dispositivo intentará conectarse a la red wifi cuyas credenciales se configuran en el fichero `devices/micropython/wifi_config.json`.
-
-En el fichero `devices/micropython/thingsboard_config.json` se define la IP y el puerto del servidor Thingsboard, junto con el *access token* del dispositivo que previamente se ha de crear en la plataforma.
-
-`platform/resources/simple_dashboard.json` contiene un panel importable desde Thingsboard con el cual se puede visualizar la variable emitida por el dispositivo.
+#### Configuración en `devices/micropython/config`:
+- `network_config.json` : El dispositivo intentará conectarse a la red wifi cuyas credenciales se configuran en este fichero.
+- `thingsboard_config.json` : Se define la IP y el puerto del servidor Thingsboard, junto con el *access token* del dispositivo que previamente se ha de crear en la plataforma.
+- `ota_config.json` : algunas variables que definen la forma de aplicar la OTA.
 
 
 ---
@@ -74,11 +73,6 @@ Instalar **mpremote**:
 ```bash
 source py_venv/bin/activate
 pip install mpremote
-```
-
-Instalar la dependencia **umqtt.simple** en el dispositivo:
-```bash
-mpremote mip install umqtt.simple
 ```
 
 Editar los archivos de configuración del directorio config:

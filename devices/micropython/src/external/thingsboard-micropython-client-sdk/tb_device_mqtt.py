@@ -102,7 +102,7 @@ class TBDeviceMqttClient:
 
     def _callback(self, topic, msg):
         topic = topic.decode('utf-8')
-        print('callback', topic, msg)
+        # print('callback', topic, msg)
 
         update_response_pattern = "v2/fw/response/" + str(self.__firmware_request_id) + "/chunk/"
 

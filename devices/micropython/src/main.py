@@ -24,7 +24,7 @@ def on_attributes_change(result, exception):
     if exception is not None:
         print("Exception: " + str(exception))
     else:
-        print(result)
+        print("Se ha actualizado un atributo: ", result)
 
 
 if __name__ == "__main__":
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     client.connect()
     print("Conexión establecida con la plataforma Thingsboard")
 
-    client.subscribe_to_all_attributes(on_attributes_change)
+    # client.subscribe_to_all_attributes(on_attributes_change)
 
     led_pin = machine.Pin(2, machine.Pin.OUT)
     led_pin.off()
@@ -40,15 +40,9 @@ if __name__ == "__main__":
 
     while True:
 
-        current_time = time.ticks_ms()
-        next_time = time.ticks_add(current_time, 5000)
-
-        publish_random_value()
-
         # Led signal
         led_pin.on()
-        time.sleep_ms(500)
+        # time.sleep_ms(500)
         led_pin.off()
 
         client.wait_for_msg()
-        utils.wait_until(next_time)
