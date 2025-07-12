@@ -1,0 +1,4 @@
+[submodule "devices/micropython/src/external/tb-client-sdk"]
+	path = devices/micropython/src/external/tb-client-sdk
+	url = https://github.com/p4bloOS/thingsboard-micropython-client-sdk.git
+	branch = patch/functional_improvements
