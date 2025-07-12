@@ -133,14 +133,14 @@ class TBDeviceMqttClient:
             callback = self.__device_client_rpc_dict.pop(request_id)
             callback(request_id, loads(msg), None)
         elif topic == ATTRIBUTES_TOPIC:
-            msg = loads(msg)
+            msg_map = loads(msg)
             dict_results = []
             # callbacks for everything
             if self.__device_sub_dict.get("*"):
                 for subscription_id in self.__device_sub_dict["*"]:
                     dict_results.append(self.__device_sub_dict["*"][subscription_id])
             # specific callback
-            keys = msg.keys()
+            keys = msg_map.keys()
             keys_list = []
             for key in keys:
                 keys_list.append(key)
@@ -151,7 +151,7 @@ class TBDeviceMqttClient:
                     for subscription in self.__device_sub_dict[key]:
                         dict_results.append(self.__device_sub_dict[key][subscription])
             for res in dict_results:
-                res(msg, None)
+                res(msg_map, None)
         elif topic.startswith(ATTRIBUTE_TOPIC_RESPONSE):
             req_id = int(topic[len(ATTRIBUTES_TOPIC + "/response/"):])
             callback = self._attr_request_dict.pop(req_id)
