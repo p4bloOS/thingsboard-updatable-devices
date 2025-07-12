@@ -63,7 +63,7 @@ python3 -m venv venv # crear entorno virtual
 Configurar el "venv" para ayudar al LSP de nuestro IDE a captar las referencias:
 ```bash
 site_packages_dir="$(./venv/bin/python -c "import site; print(site.getsitepackages()[0])")"
-realpath devices/micropython/src/external/thingsboard-micropython-client-sdk/ \
+realpath devices/micropython/src/external/tb-client-sdk/ \
 > "${site_packages_dir}/tb-client-lib.pth"
 realpath devices/micropython/src/lib/ > "${site_packages_dir}/my-lib.pth"
 ./venv/bin/pip install micropython-esp32-stubs==1.24.1.post2

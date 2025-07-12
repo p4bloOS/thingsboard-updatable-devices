@@ -6,7 +6,7 @@ cd $(dirname $0)
 
 # Dependencias
 mpremote mkdir lib || true
-mpremote cp src/external/thingsboard-micropython-client-sdk/{umqtt,sdk_utils,tb_device_mqtt,provision_client}.py :lib/
+mpremote cp src/external/tb-client-sdk/{umqtt,sdk_utils,tb_device_mqtt,provision_client}.py :lib/
 mpremote mip install package.json
 
 # Código fuente de este proyecto
