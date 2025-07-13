@@ -6,5 +6,8 @@
     ["tb_device_mqtt.py", "../src/external/tb-client-sdk/tb_device_mqtt.py"],
     ["provision_client.py", "../src/external/tb-client-sdk/provision_client.py"]
   ],
-  "deps": [["tarfile", "latest"]]
+  "deps": [
+    ["tarfile", "latest"],
+    ["logging", "latest"]
+  ]
 }

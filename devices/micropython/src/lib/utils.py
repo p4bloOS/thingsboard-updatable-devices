@@ -5,8 +5,11 @@ utils.py
 import time
 import network
 import json
+import logging
+import os
 from ota_helper import UpdatableTBMqttClient, METADATA_FILE_NAME
 
+log = logging.getLogger(__name__)
 
 def read_config_file(file_name: str) -> dict:
     """
@@ -39,10 +42,14 @@ def network_connect():
     wlan.active(True)
     if not wlan.isconnected():
         wlan.connect(network_config['SSID'], network_config['password'])
+        seconds_count = 0
         while not wlan.isconnected():
-            print("Esperando a la conexión wifi...")
+            log.debug("Esperando a la conexión wifi...")
+            seconds_count = seconds_count + 1
+            if seconds_count == 60:
+                log.error("Se ha intentado establecer conexión durante 1 minuto sin éxito")
             time.sleep(1)
-    print('Configuración de red establecida:', wlan.ipconfig('addr4'))
+    log.info(f"Configuración de red establecida: {wlan.ipconfig('addr4')}")
 
 
 def get_updatable_thingsboard_client() -> UpdatableTBMqttClient:
@@ -68,6 +75,35 @@ def get_updatable_thingsboard_client() -> UpdatableTBMqttClient:
         fw_current_version=fw_metadata['version'],
         fw_filename=ota_config['tmp_filename']
     )
+
+
+def get_custom_logger(name) -> logging.Logger:
+
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    # Console handler
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+
+    # Directorio "logs"
+    try:
+        os.listdir("logs") # Si produce excepxión, el directorio aún no existe
+    except OSError:
+        os.mkdir("logs")
+
+    # File handler
+    file_handler = logging.FileHandler("logs/error.log", mode="a")
+    file_handler.setLevel(logging.WARNING)
+
+    # Formatter
+    formatter = logging.Formatter("%(levelname)s:%(name)s| %(message)s")
+    stream_handler.setFormatter(formatter)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(stream_handler)
+    logger.addHandler(file_handler)
+    return logger
 
 
 def wait_until(t):

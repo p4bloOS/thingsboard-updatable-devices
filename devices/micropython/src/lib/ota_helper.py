@@ -16,6 +16,23 @@ from sdk_utils import verify_checksum
 import lib.umqtt
 sys.modules['umqtt']=lib.umqtt
 
+try:
+    import logging
+    log = logging.getLogger(__name__)
+except ImportError:
+    class logging:
+        def critical(self, entry):
+            print('CRITICAL: ' + entry)
+        def error(self, entry):
+            print('ERROR: ' + entry)
+        def warning(self, entry):
+            print('WARNING: ' + entry)
+        def info(self, entry):
+            print('INFO: ' + entry)
+        def debug(self, entry):
+            print('DEBUG: ' + entry)
+    log = logging()
+
 from tb_device_mqtt import (
     TBDeviceMqttClient,
     ATTRIBUTES_TOPIC,
@@ -79,7 +96,7 @@ class UpdatableTBMqttClient(TBDeviceMqttClient):
                 self.firmware_info.get(FW_TITLE_ATTR) is not None and
                 self.firmware_info.get(FW_TITLE_ATTR) == self.current_firmware_info.get("current_" + FW_TITLE_ATTR)
             ):
-                print('Firmware is the same')
+                log.warning("El firmware recibido desde Thingsboard ya está instalado")
                 self.current_firmware_info[FW_STATE_ATTR] = "UPDATED"
                 self.send_telemetry(self.current_firmware_info)
 
@@ -93,26 +110,30 @@ class UpdatableTBMqttClient(TBDeviceMqttClient):
                                                 self.firmware_info.get(FW_CHECKSUM_ATTR))
 
         if verification_result:
-            print('Checksum verified!')
+            log.info('Checksum verificado')
             self.current_firmware_info[FW_STATE_ATTR] = "VERIFIED"
             self.send_telemetry(self.current_firmware_info)
             sleep(1)
 
             with open(self.fw_file_name, "wb") as firmware_file:
                 firmware_file.write(self.firmware_data)
+            log.info(f"El paquete de firmware recibido se ha guardado en {self.fw_file_name}")
 
             expected_fw_metadata = {
                 "title": self.firmware_info.get(FW_TITLE_ATTR),
                 "version": self.firmware_info.get(FW_VERSION_ATTR)
             }
-            with open(self.fw_file_name + EXPECTED_METADATA_SUFFIX, "wb") as firmware_metadata_file:
+            metadata_file_name = self.fw_file_name + EXPECTED_METADATA_SUFFIX
+            with open(metadata_file_name, "wb") as firmware_metadata_file:
                 firmware_metadata_file.write(json.dumps(expected_fw_metadata))
+            log.debug(f"Los metadatos del paquete se han guardado en {metadata_file_name}")
 
             self.firmware_received = True
+            log.info("Reiniciando sistema para instalar nuevo paquete de firmware")
             reset()
 
         else:
-            print('Checksum verification failed!')
+            log.error('Verificación de checksum fallida')
             self.current_firmware_info[FW_STATE_ATTR] = "FAILED"
             self.send_telemetry(self.current_firmware_info)
             self.__request_id = self.__request_id + 1
@@ -123,8 +144,9 @@ class UpdatableTBMqttClient(TBDeviceMqttClient):
 
 class OTAInstaller():
 
-    def __init__(self, ota_package_path: str):
+    def __init__(self, ota_package_path: str, quiet=False):
         self.ota_package_path = ota_package_path
+        self.quiet = quiet
 
 
     def check_tar_gz_format(self):
@@ -152,7 +174,7 @@ class OTAInstaller():
         try:
             fw_metadata = json.loads(json_file.read())
         except ValueError as e:
-            raise ValueError(f"Error mientras se cargaba el fichero JSON de metadatos: {e}")
+            raise ValueError("Error mientras se cargaba el fichero JSON de metadatos") from e
         if ( 'title' not in fw_metadata or 'version' not in fw_metadata):
             raise KeyError("No se han encontrado los atributos esperados en FW_METADATA.json "
                 "(\"title\" y \"version\")")
@@ -205,7 +227,7 @@ class OTAInstaller():
 
         path = path[:-1] if path.endswith('/') else path
         if path in excluded_paths:
-            print(f"Omitiendo borrado de {path}")
+            log.debug(f"Omitiendo borrado de {path}")
             return
 
         try:
@@ -214,7 +236,7 @@ class OTAInstaller():
             for child in children:
                 self.__recursive_delete(path + '/' + child, excluded_paths)
         except OSError:
-            print(f"Borrando archivo {path}")
+            log.debug(f"Borrando archivo {path}")
             os.remove(path)
             return
 
@@ -222,11 +244,11 @@ class OTAInstaller():
             return
 
         try:
-            print(f"Borrando directorio {path}")
+            log.debug(f"Borrando directorio {path}")
             os.rmdir(path)
         except OSError as e:
             if e.errno == 39:
-                print(f"Directorio {path} no vacío. Hay un archivo excluido dentro")
+                log.debug(f"Directorio {path} no vacío. Hay un archivo excluido dentro")
             else:
                 raise e
 
@@ -247,10 +269,10 @@ class OTAInstaller():
                 f"/{self.ota_package_path}",
                 f"/{self.ota_package_path}{EXPECTED_METADATA_SUFFIX}"
             ]
-            print("Realizando limpieza recursiva")
+            log.info("Realizando limpieza recursiva")
             self.__recursive_delete("/", excluded_paths)
 
-        print("Aplicando paquete OTA sobre el sistema de ficheros")
+        log.info("Aplicando paquete OTA sobre el sistema de ficheros")
         with open(self.ota_package_path, 'rb') as ota_file:
             decompressed_file = deflate.DeflateIO(ota_file, deflate.GZIP)
             tar_file = tarfile.TarFile(fileobj=decompressed_file)
@@ -258,19 +280,19 @@ class OTAInstaller():
                 file_name = file_entry.name
                 if file_name in excluded_files:
                     item_type = 'directorio' if file_name.endswith('/') else 'fichero'
-                    print(f'Omitiendo {item_type} {file_name}')
+                    log.warning(f'Omitiendo escritura de {item_type} excluido "{file_name}"')
                     continue
                 if file_entry.type == tarfile.DIRTYPE:
                     try:
-                        print(f"Creando directorio {file_name}")
+                        log.debug(f"Creando directorio {file_name}")
                         os.mkdir(file_entry.name[:-1])
                     except OSError as e:
                         if e.errno == 17:
-                            print('El directorio ya existe')
+                            log.debug('El directorio ya existe')
                         else:
                             raise e
                 else:
-                    print(f"Escribiendo archivo {file_name}")
+                    log.debug(f"Escribiendo archivo {file_name}")
                     file = tar_file.extractfile(file_entry)
                     with open(file_name, "wb") as of:
                         of.write(file.read())
