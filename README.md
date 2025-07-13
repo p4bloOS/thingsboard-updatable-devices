@@ -1,4 +1,4 @@
-# 02-basic_ota_update
+# 03-improved_ota_update
 
 Implementación de una actualización OTA en un dispositivo con Micropython, usando Thingsboard como plataforma, a la cual se conecta el dispositivo a través de wifi y MQTT.
 
@@ -75,23 +75,25 @@ source py_venv/bin/activate
 pip install mpremote
 ```
 
-Editar los archivos de configuración del directorio config:
-- ota_config.json
-- thingsboard_config.json
-- wifi_config.json
+### Paquete mip **ota-helper-lib**:
+  Contiene la biblioteca ota_helper.py y sus dependencias.
+```bash
+mpremote mip install mip_packages/ota-helper-lib.json
+```
+
+### Paquete mip **example-program**
+Contiene los scripts que conforman un programa de ejemplo que realiza una actualización,
+junto con los archivos de configuración que usan dichos scripts.
+```bash
+mpremote mip --target "" install mip_packages/example-program.json
+```
 
 Borrar todo todos los ficheros existentes en el dispositivo:
 ```bash
 mpremote rm -rv :/
 ```
 
-Instalar el proyecto en la placa:
-```bash
-./devices/micropython/install.sh
-```
-
-Actualizar los archivos de configuración:
-```bash
-mpremote fs cp devices/micropython/config/* :config/
-mpremote fs cp devices/micropython/config/* :config/
-```
+Editar los archivos de configuración del directorio config:
+- ota_config.json
+- thingsboard_config.json
+- wifi_config.json
