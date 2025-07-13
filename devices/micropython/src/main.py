@@ -8,7 +8,6 @@ import utils
 # Thingsboard MQTT client
 client = utils.get_updatable_thingsboard_client()
 
-
 def publish_random_value():
     """
     Envía a la plataforma un dato de telemetría con clave "random_value" y como
@@ -19,6 +18,7 @@ def publish_random_value():
     print("Enviando valor random")
     client.send_telemetry(telemetry)
     print("Telemetría enviada enviada: %s)" % json.dumps(telemetry))
+
 
 def on_attributes_change(result, exception):
     if exception is not None:

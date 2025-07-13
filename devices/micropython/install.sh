@@ -13,6 +13,7 @@ mpremote mip install package.json
 mpremote cp src/boot.py :/
 mpremote cp src/main.py :/
 mpremote cp src/lib/utils.py :lib/
+mpremote cp src/lib/ota_helper.py :lib/
 
 # Configuración
 mpremote mkdir config || true
