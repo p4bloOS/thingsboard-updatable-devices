@@ -1,4 +1,9 @@
-# 03-improved_ota_update
+# thingsboard-updatable-devices
+
+Características implementadas hasta la fecha:
+- 01-minimum_iot_system
+- (micropython) 02-basic_ota_update
+-               03-improved_ota_update
 
 Implementación de una actualización OTA en un dispositivo con Micropython, usando Thingsboard como plataforma, a la cual se conecta el dispositivo a través de wifi y MQTT.
 
