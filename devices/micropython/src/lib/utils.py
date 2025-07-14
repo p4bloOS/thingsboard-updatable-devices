@@ -82,6 +82,12 @@ def get_custom_logger(name) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
+    # Si el logger tenía handlers, se eliminan para ser sobrescritos
+    if logger.hasHandlers():
+        for h in logger.handlers:
+            h.close()
+        logger.handlers = []
+
     # Console handler
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.DEBUG)

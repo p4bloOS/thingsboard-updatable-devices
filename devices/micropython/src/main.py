@@ -33,6 +33,7 @@ def on_attributes_change(result, exception):
 
 if __name__ == "__main__":
 
+    log.info("Iniciando programa principal")
     client.connect()
     log.info("Conexión establecida con la plataforma Thingsboard")
 

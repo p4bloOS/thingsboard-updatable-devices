@@ -1,5 +1,8 @@
 import utils
 import sys
+import gc
+import logging
+from time import sleep
 from ota_helper import OTAInstaller
 
 def main():
@@ -36,20 +39,21 @@ def main():
     try:
         log.debug("Comprobando formato TAR GZ")
         ota_installer.check_tar_gz_format()
-        log.debug("Comprobando que los datos del paquete coinciden con los esperados")
+        log.debug("Comprobando que los metadatos del paquete coinciden con los esperados")
         ota_installer.check_metadata_in_package()
         log.debug("Instalando firmware sobre el sistema de ficheros")
         ota_installer.install_firmware(
             ota_config['excluded_files'],
             ota_config['clear_filesystem']
         )
-        log.debug("Eliminando paquete de actualización aplicado")
+        log.debug("Eliminando archivo de actualización aplicado")
         ota_installer.delete_ota_package()
         log.info("El nuevo firmware se ha instalado satisfactoriamente")
         new_fw_metadata = utils.read_firmware_metadata()
         new_fw_title = new_fw_metadata["title"]
         new_fw_version = new_fw_metadata["version"]
         log.info(f"Nueva versión de firmware: {new_fw_title}({new_fw_version})")
+        gc.collect()
         client.send_telemetry({
             "current_fw_title": new_fw_title,
             "current_fw_version": new_fw_version,
@@ -62,6 +66,11 @@ def main():
         log.error(error_msg)
         sys.print_exception(e)
         client.send_telemetry( { "fw_state": "FAILED", "fw_error": error_msg } )
+
+    finally:
+
+        log.info("Finalizando boot.py")
+        client.disconnect()
 
 
 main()
