@@ -1,32 +1,65 @@
 # thingsboard-updatable-devices
 
-Características implementadas hasta la fecha:
-- 01-minimum_iot_system
-- (micropython) 02-basic_ota_update
--               03-improved_ota_update
+Este un proyecto pretende implementar la actualización OTA en dispositivos IoT para la plataforma Thingsboard, concretamente en 2 clases de dispositvos:
+- Microcontrolador con Micropython
+- Mini-PC con Linx (Yocto Linux ????)
 
-Implementación de una actualización OTA en un dispositivo con Micropython, usando Thingsboard como plataforma, a la cual se conecta el dispositivo a través de wifi y MQTT.
+Se tratará de implementar el sistema sobre 3 escenarios de conectividad:
+- TCP/IP
+- BLE
+- LoRa
 
-#### Configuración en `devices/micropython/config`:
-- `network_config.json` : El dispositivo intentará conectarse a la red wifi cuyas credenciales se configuran en este fichero.
-- `thingsboard_config.json` : Se define la IP y el puerto del servidor Thingsboard, junto con el *access token* del dispositivo que previamente se ha de crear en la plataforma.
-- `ota_config.json` : algunas variables que definen la forma de aplicar la OTA.
+Ramas de características desarrolladas hasta la fecha:
+- [x] 01-minimum_iot_system
+- [x] 02-basic_ota_update
+- [x] 03-improved_ota_update
+- [ ] 04-ble_support
+- [ ] 05-lora_support
+- [ ] 06-adaptation_to_linux
+
+
+## Características relevantes
+
+### Para **Micropython** ([thingsboard-updatable-devices/devices/micropython/](https://github.com/p4bloOS/thingsboard-updatable-devices/tree/master/devices/micropython)):
+
+- Biblioteca **ota-helper**, capaz de gestionar la comunicación con Thingsboard relativa a las actualizaciones OTA y aplicar un paquete OTA sobre el sistema de ficheros de micropython.
+- Aplicación de ejemplo para un dispositivo cliente de Thingsboard, actualizable y capaz de realizar otras tareas concurrentemente.
+- Paquetes [mip](https://docs.micropython.org/en/latest/reference/packages.html) relativos a las 2 características anteriores. Véase:
+    - [ota-helper-lib.json](https://github.com/p4bloOS/thingsboard-updatable-devices/blob/master/devices/micropython/mip_packages/ota-helper-lib.json)
+    - [example-program.json](https://github.com/p4bloOS/thingsboard-updatable-devices/blob/master/devices/micropython/mip_packages/example-program.json)
+- Herramienta [gen_ota_package.py](https://github.com/p4bloOS/thingsboard-updatable-devices/blob/master/devices/micropython/tools/gen_ota_package.py) para generar paquetes de actualización OTA en formato **tar.gz**.
+
+
+### Para **Linux embebido** ([thingsboard-updatable-devices/devices/linux/](https://github.com/p4bloOS/thingsboard-updatable-devices/tree/master/devices/linux)) (*POR IMPLEMENTAR*):
+
+- Adaptación a Python estándar sobre Linux de la biblioteca ota-helper y el programa de ejemplo.
+- Imagen personalizada de Linux creada con [Buildroot](https://buildroot.org/), que contiene un servicio para comunicarse con Thingsboard y aplicar las actualizaciones mediante [RAUC](https://rauc.io/)
+- Posibles herramientas por definir.
+
+### Conectividad:
+
+- Este proyecto funciona por defecto cuando el dispositivo se conecta directamente por MQTT a la plataforma o a alguno de sus gateways.
+- Soporte para **BLE**: *POR IMPLEMENTAR*
+- Soporte para **LoRa**: *POR IMPLEMENTAR*
 
 
 ---
 
-## Plataforma
+## Instalación
+
+
+### Plataforma
 
 Clonar este repositorio, entrar en él y bajar sus submódulos
 ```bash
-git clone -b 02-basic_ota_update https://github.com/p4bloOS/TFG.git
-cd TFG/
+git clone https://github.com/p4bloOS/thingsboard-updatable-devices.git
+cd thingsboard-updatable-devices/
 git submodule update --init --recursive
 ```
 
 Levantar el contenedor de Thingsboard por primera vez:
 ```bash
-cd TFG/platform
+cd platform
 mkdir -p mytb-data && sudo chown -R 799:799 mytb-data
 mkdir -p mytb-logs && sudo chown -R 799:799 mytb-logs
 docker compose up -d
@@ -51,17 +84,18 @@ Credenciales predeterminadas de la interfaz web:
 - tenant@thingsboard.org / tenant
 - customer@thingsboard.org / customer
 
-Para recibir recibir los datos del dispositivo, se puede crear en Thingsboard un dispositivo de nombre my-esp32-device.
-
----
 
 ## Dispositivo
+
+
+
+
 
 *Probado en una placa ESP32-WROOM con Micropython instalado.*
 
 Crear un entorno virtual de Python:
 ```bash
-cd TFG/
+cd thingsboard-updatable-devices/
 python3 -m venv venv # crear entorno virtual
 ```
 
@@ -98,7 +132,22 @@ Borrar todo todos los ficheros existentes en el dispositivo:
 mpremote rm -rv :/
 ```
 
-Editar los archivos de configuración del directorio config:
-- ota_config.json
-- thingsboard_config.json
-- wifi_config.json
+
+---
+
+## Configuración
+
+### Plataforma
+
+
+AÑADIR LOS RESOURCES
+
+Para recibir los datos del dispositivo, se puede crear en Thingsboard un dispositivo de nombre my-esp32-device.
+
+
+### Dispositivo
+
+#### Configuración en `devices/micropython/config`:
+- `network_config.json` : El dispositivo intentará conectarse a la red wifi cuyas credenciales se configuran en este fichero.
+- `thingsboard_config.json` : Se define la IP y el puerto del servidor Thingsboard, junto con el *access token* del dispositivo que previamente se ha de crear en la plataforma.
+- `ota_config.json` : algunas variables que definen la forma de aplicar la OTA.
