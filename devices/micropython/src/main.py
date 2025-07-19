@@ -42,7 +42,7 @@ async def heartbeat_LED():
         await asyncio.sleep_ms(100)
 
 
-async def listen_thingsboard(period_ms):
+async def listen_thingsboard():
 
     def on_attributes_change(result, exception):
         if exception is not None:
@@ -63,16 +63,19 @@ async def listen_thingsboard(period_ms):
     client.subscribe_to_all_attributes(on_attributes_change)
     client.set_server_side_rpc_request_handler(on_server_side_rpc_request)
 
+    tb_config = utils.read_config_file("thingsboard_config.json")
+    check_msg_period_ms = tb_config['check_msg_period_ms']
+
     while True:
         client._client.check_msg()
-        await asyncio.sleep_ms(period_ms)
+        await asyncio.sleep_ms(check_msg_period_ms)
 
 
 async def main():
     await asyncio.gather(
         heartbeat_LED(),
         memory_report(1_000),
-        listen_thingsboard(1_000)
+        listen_thingsboard()
     )
 
 

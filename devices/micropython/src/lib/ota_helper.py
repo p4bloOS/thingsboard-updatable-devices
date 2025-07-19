@@ -227,7 +227,7 @@ class OTAInstaller():
 
         path = path[:-1] if path.endswith('/') else path
         if path in excluded_paths:
-            log.debug(f"Omitiendo borrado de {path}")
+            not self.quiet and log.debug(f"Omitiendo borrado de {path}")
             return
 
         try:
@@ -236,7 +236,7 @@ class OTAInstaller():
             for child in children:
                 self.__recursive_delete(path + '/' + child, excluded_paths)
         except OSError:
-            log.debug(f"Borrando archivo {path}")
+            not self.quiet and log.debug(f"Borrando archivo {path}")
             os.remove(path)
             return
 
@@ -244,11 +244,11 @@ class OTAInstaller():
             return
 
         try:
-            log.debug(f"Borrando directorio {path}")
+            not self.quiet and log.debug(f"Borrando directorio {path}")
             os.rmdir(path)
         except OSError as e:
             if e.errno == 39:
-                log.debug(f"Directorio {path} no vacío. Hay un archivo excluido dentro")
+                not self.quiet and log.debug(f"Directorio {path} no vacío. Hay un archivo excluido dentro")
             else:
                 raise e
 
@@ -269,10 +269,10 @@ class OTAInstaller():
                 f"/{self.ota_package_path}",
                 f"/{self.ota_package_path}{EXPECTED_METADATA_SUFFIX}"
             ]
-            log.info("Realizando limpieza recursiva")
+            not self.quiet and log.info("Realizando limpieza recursiva")
             self.__recursive_delete("/", excluded_paths)
 
-        log.info("Aplicando paquete OTA sobre el sistema de ficheros")
+        not self.quiet and log.info("Aplicando paquete OTA sobre el sistema de ficheros")
         with open(self.ota_package_path, 'rb') as ota_file:
             decompressed_file = deflate.DeflateIO(ota_file, deflate.GZIP)
             tar_file = tarfile.TarFile(fileobj=decompressed_file)
@@ -280,11 +280,11 @@ class OTAInstaller():
                 file_name = file_entry.name
                 if file_name in excluded_files:
                     item_type = 'directorio' if file_name.endswith('/') else 'fichero'
-                    log.warning(f'Omitiendo escritura de {item_type} excluido "{file_name}"')
+                    not self.quiet and log.warning(f'Omitiendo escritura de {item_type} excluido "{file_name}"')
                     continue
                 if file_entry.type == tarfile.DIRTYPE:
                     try:
-                        log.debug(f"Creando directorio {file_name}")
+                        not self.quiet and log.debug(f"Creando directorio {file_name}")
                         os.mkdir(file_entry.name[:-1])
                     except OSError as e:
                         if e.errno == 17:
@@ -292,7 +292,7 @@ class OTAInstaller():
                         else:
                             raise e
                 else:
-                    log.debug(f"Escribiendo archivo {file_name}")
+                    not self.quiet and log.debug(f"Escribiendo archivo {file_name}")
                     file = tar_file.extractfile(file_entry)
                     with open(file_name, "wb") as of:
                         of.write(file.read())

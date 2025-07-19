@@ -66,7 +66,7 @@ def get_updatable_thingsboard_client() -> UpdatableTBMqttClient:
     fw_metadata = read_firmware_metadata()
 
     return UpdatableTBMqttClient(
-        host=thingsboard_config['server_ip'],
+        host=thingsboard_config['server_host'],
         port=thingsboard_config['server_port'],
         access_token=thingsboard_config['device_access_token'],
         client_id="micropython_client",
@@ -110,17 +110,3 @@ def get_custom_logger(name) -> logging.Logger:
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
     return logger
-
-
-def wait_until(t):
-    """
-    Realiza un sleep hasta un instante de referencia en milisegundos "t".
-    Ejemplo:
-        current_time = time.ticks_ms()
-        next_time = time.ticks_add(current_time, 1000)
-        ... Hacer algún proceso ...
-        wait_until(next_time)
-    """
-    wait_time = time.ticks_diff(t, time.ticks_ms())
-    if wait_time > 0:
-        time.sleep_ms(wait_time)
