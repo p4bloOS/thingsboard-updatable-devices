@@ -1,3 +1,9 @@
+"""
+Script de inicio para un dispositivo Micropython genérico.
+Establece conexión con la red y, en caso de encontrar un paquete de actualización
+OTA, lo intenta instalar, informando a Thingsboard del resultado.
+"""
+
 import utils
 import sys
 import gc

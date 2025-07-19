@@ -1,7 +1,7 @@
 """
-ota_helper.py
-Inspirado por el proyecto "uota" de mkomon.
-(https://github.com/mkomon/uota/tree/daf71b75950ee325168b9c74ec6540df7bf331dd)
+Biblioteca ota_helper.py para gestionar actualizaciones OTA en un dispositivo
+Micropython cliente de la plataforma Thingsboard.
+https://github.com/p4bloOS/thingsboard-updatable-devices
 """
 
 import json
@@ -143,15 +143,29 @@ class UpdatableTBMqttClient(TBDeviceMqttClient):
 
 
 class OTAInstaller():
+    """
+    Clase manejadora de la instalación de un paquete OTA recibido, con métodos para comprobar
+    el correcto formato del archivo, su coherencia con los datos reportados por la plataforma
+    y su instalación sobre el sistema de ficheros con diferentes parámetros de personalización.
+    Está pensada para ser usada en la rutina de inicio del dispositivo, tras comprobar que existe
+    un nuevo paquete OTA listo para instalarse.
+    """
 
     def __init__(self, ota_package_path: str, quiet=False):
+        """
+        Contruye un objeto de tipo OTAInstaller.
+        Parámetros:
+            ota_package_path: ruta del paquete de OTA que se pretende instalar
+            quiet: si es True, no se emitará ningún mensaje de log
+        """
         self.ota_package_path = ota_package_path
         self.quiet = quiet
 
 
     def check_tar_gz_format(self):
         """
-        Comprueba que un sigue el formato TAR.GZ, lanzando una excepción en caso negativo.
+        Comprueba que el paquete OTA es un fichero con el formato TAR.GZ, lanzando
+        una excepción en caso negativo.
         """
         with open(self.ota_package_path, 'rb') as ota_file:
             decompressed_file = deflate.DeflateIO(ota_file, deflate.GZIP)
@@ -183,7 +197,7 @@ class OTAInstaller():
 
     def check_metadata_in_package(self):
         """
-        Inspecciona como un TAR.GZ un fichero de OTA y comprueba que contenga dentro el
+        Inspecciona como un TAR.GZ el fichero de OTA y comprueba que contenga dentro el
         fichero FW_METADATA.json.
         Los campos "title" y "version" de FW_METADATA.json deberán coincidir con los reportados
         con la plataforma antes del reincio, almacenados un fichero "<ota_file_name>.metadata.json".
@@ -257,8 +271,9 @@ class OTAInstaller():
         """
         Aplica el paquete OTA sobreescribiendo el sistema de ficheros.
         Parámetros:
-            ota_file_path: nombre del paquete OTA a aplicar
-            ota_config: diccionario
+            excluded_files: lista de rutas excluidas (no se modificarán ni borrarán en ningún caso)
+            cleanup: si es True, se realizará un borrado de todos los archivos (menos los excluidos)
+                     antes de instalar los nuevos archivos.
         """
         gc.collect()
 

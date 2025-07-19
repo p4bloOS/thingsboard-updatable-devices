@@ -16,7 +16,7 @@ Este es un sistema desarrollado para ser instalado como el firmware de un dispos
 
 - **Programa de ejemplo** (paquete mip en [mip_packages/example-program.json](mip_packages/example-program.json))
 
-    Este componente está conformado por los siguientes scripts y archivos de configuración (con sus rutas tal como se verían en el dispositivo una vez instalados):
+    Este componente hace uso de la biblioteca ota-helper para demostrar su funcionamiento. Está conformado por los siguientes scripts y archivos de configuración (con sus rutas tal como se verían en el dispositivo una vez instalados):
     - [`/boot.py`](src/boot.py): Script de incio que establece la conexión de red, instala el paquete OTA si hay uno nuevo disponible y comunica a Thingsboard el resultado.
     - [`/main.py`](src/main.py): Script principal que realiza varias tareas en paralelo mediante [asyncio](https://docs.micropython.org/en/latest/library/asyncio.html) mientras mantiene una escucha periódica de los mensajes de Thingsboard.
     - [`/FW_METADATA.json`](src/FW_METADATA.json): Fichero en la raíz del dispositivo que indica el título y la versión actual del firmware. (necesario para que la bilioteca ota-helper funcione)

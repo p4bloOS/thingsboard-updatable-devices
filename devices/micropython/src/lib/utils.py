@@ -1,5 +1,6 @@
 """
-utils.py
+Biblioteca de utilidades para el proyecto thingsboard-updatable-devices,
+desarrollada para Micropython.
 """
 
 import time
@@ -78,6 +79,11 @@ def get_updatable_thingsboard_client() -> UpdatableTBMqttClient:
 
 
 def get_custom_logger(name) -> logging.Logger:
+    """
+    Retorna un logger con la configuración preferida para este proyecto.
+    En caso de ya existir un logger con el nombre proporcionado, obtiene
+    su referencia y lo retorna reconfigurado.
+    """
 
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
