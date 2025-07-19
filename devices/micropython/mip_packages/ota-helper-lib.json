@@ -1,0 +1,13 @@
+{
+  "urls": [
+    ["ota_helper.py", "../src/lib/ota_helper.py"],
+    ["umqtt.py", "../src/external/tb-client-sdk/umqtt.py"],
+    ["sdk_utils.py", "../src/external/tb-client-sdk/sdk_utils.py"],
+    ["tb_device_mqtt.py", "../src/external/tb-client-sdk/tb_device_mqtt.py"],
+    ["provision_client.py", "../src/external/tb-client-sdk/provision_client.py"]
+  ],
+  "deps": [
+    ["tarfile", "latest"],
+    ["logging", "latest"]
+  ]
+}

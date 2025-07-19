@@ -1,0 +1,11 @@
+{
+  "urls": [
+    ["boot.py", "../src/boot.py"],
+    ["main.py", "../src/main.py"],
+    ["FW_METADATA.json", "../src/FW_METADATA.json"],
+    ["lib/utils.py", "../src/lib/utils.py"],
+    ["config/network_config.json", "../config/network_config.json"],
+    ["config/ota_config.json", "../config/ota_config.json"],
+    ["config/thingsboard_config.json", "../config/thingsboard_config.json"]
+  ]
+}

@@ -20,15 +20,21 @@ utils.get_custom_logger("ota_helper")
 client = utils.get_updatable_thingsboard_client()
 
 
-async def memory_report(period_ms):
+async def memory_and_cpu_report(period_ms):
     """
-    Envía telemetría a la plataforma con datos sobre la memoria del heap
-    asignada y libre.
+    Envía telemetría a la plataforma con datos sobre:
+    - La memoria del heap asignada y libre.
+    - La frecuencia de la CPU.
     """
     while True:
         mem_free = gc.mem_free()
         mem_alloc = gc.mem_alloc()
-        telemetry = {"memory_free" : mem_free, "memory_allocated": mem_alloc}
+        cpu_freq = machine.freq()
+        telemetry = {
+            "memory_free" : mem_free,
+            "memory_allocated": mem_alloc,
+            "cpu_frequency": cpu_freq
+        }
         client.send_telemetry(telemetry)
         await asyncio.sleep_ms(period_ms)
 
@@ -90,7 +96,7 @@ async def main():
     """
     await asyncio.gather(
         heartbeat_LED(),
-        memory_report(1_000),
+        memory_and_cpu_report(1_000),
         listen_thingsboard()
     )
 
