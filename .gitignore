@@ -1,4 +1,5 @@
 venv/
-platform/mytb-data/
-platform/mytb-logs/
+**/__pycache__/*.pyc
+platform/server/mytb-data/
+platform/server/mytb-logs/
 devices/micropython/tools/generated

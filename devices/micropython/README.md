@@ -35,16 +35,15 @@ Este es un sistema desarrollado para ser instalado como el firmware de un dispos
 Una vez clonado este repositorio, crear un entorno virtual de Python:
 ```bash
 # (En el entorno de desarrollo)
-cd thingsboard-updatable-devices/
+cd thingsboard-updatable-devices/devices/micropython
 python3 -m venv venv
 ```
 
 Configurar el **venv** para ayudar al LSP de nuestro IDE a captar las referencias:
 ```bash
 site_packages_dir="$(./venv/bin/python -c "import site; print(site.getsitepackages()[0])")"
-realpath devices/micropython/src/external/tb-client-sdk/ \
-> "${site_packages_dir}/tb-client-lib.pth"
-realpath devices/micropython/src/lib/ > "${site_packages_dir}/my-lib.pth"
+realpath src/external/tb-client-sdk/ > "${site_packages_dir}/tb-client-lib.pth"
+realpath src/lib/ > "${site_packages_dir}/my-lib.pth"
 ./venv/bin/pip install micropython-esp32-stubs==1.24.1.post2
 ```
 
