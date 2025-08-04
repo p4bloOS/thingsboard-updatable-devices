@@ -1,5 +1,12 @@
+# Python
 venv/
 **/__pycache__/*.pyc
+
+# Volúmenes de Thingsboard
 platform/server/mytb-data/
 platform/server/mytb-logs/
+platform/gateway/tb-gw-extensions/*
+!platform/gateway/tb-gw-extensions/ble/utf8_bytes_ble_uplink_converter.py
+
+# Paquetes OTA generados
 devices/micropython/tools/generated
