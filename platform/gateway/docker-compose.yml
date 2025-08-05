@@ -27,7 +27,7 @@ services:
 
     # Volumes bind
     volumes:
-      - /tb-gw-config:/thingsboard_gateway/config
+      - tb-gw-config:/thingsboard_gateway/config
       - tb-gw-logs:/thingsboard_gateway/logs
       - ./tb-gw-extensions:/thingsboard_gateway/extensions
       - /var/run/dbus:/var/run/dbus

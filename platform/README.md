@@ -1,21 +1,25 @@
 ## Plataforma Thingsboard aplicada a una flota actualizable
 
-### Instalación
+> **Índice:**
+> 1. [Despliegue del servidor](#despliegue-del-servidor)
+> 2. [Configuración](#configuración)
+> 3. [Despliegue del Gateway] (#de)
+> 4. [Indicaciones de uso](#conclusión)
+
+### Despliegue del servidor
 
 Levantar el contenedor de Thingsboard por primera vez:
 ```bash
-cd platform
-mkdir -p mytb-data && sudo chown -R 799:799 mytb-data
-mkdir -p mytb-logs && sudo chown -R 799:799 mytb-logs
+cd platform/server
 docker compose up -d
-# interfaz a la escucha en http://localhost:8080/
+# ...Interfaz web a la escucha en http://localhost:8080/
 ```
 
 Comandos útiles:
 ```bash
-docker compose logs -f mytb     # Consultar los logs
-docker compose stop mytb        # Detener el contenedor
-docker compose start mytb       # Reanudar el contenedor
+docker compose logs -f tb-server     # Consultar los logs
+docker compose stop tb-server        # Detener el contenedor
+docker compose start tb-server       # Reanudar el contenedor
 ```
 
 Credenciales predeterminadas de la interfaz web:

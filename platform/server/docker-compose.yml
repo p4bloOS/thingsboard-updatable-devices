@@ -1,16 +1,20 @@
-version: "3.0"
-
 services:
-  mytb:
+  tb-server:
     restart: always
     image: "thingsboard/tb-postgres"
     ports:
       - "8080:9090" # HTTP
       - "1883:1883" # MQTT
-      - "7070:7070" # Edge RPC
-      - "5683-5688:5683-5688/udp" # COAP y LwM2M
+      # - "7070:7070" # Edge RPC
+      # - "5683-5688:5683-5688/udp" # COAP y LwM2M
     environment:
       TB_QUEUE_TYPE: in-memory
     volumes:
-      - ./mytb-data:/data # Database
-      - ./mytb-logs:/var/log/thingsboard # Logs
+      - tb-server-data:/data # Database
+      - tb-server-logs:/var/log/thingsboard # Logs
+
+volumes:
+  tb-server-data:
+    name: tb-server-data
+  tb-server-logs:
+    name: tb-server-logs
