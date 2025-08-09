@@ -1,7 +1,29 @@
 import asyncio
 import gc
+import machine
 import bluetooth
 import aioble
+
+from hashlib import sha256
+
+def verify_checksum(firmware_data, checksum_alg, checksum):
+    if firmware_data is None:
+        print('Firmware was not received!')
+        return False
+    if checksum is None:
+        print('Checksum was\'t provided!')
+        return False
+    checksum_of_received_firmware = None
+    print('Checksum algorithm is: %s' % checksum_alg)
+    if checksum_alg.lower() == "sha256":
+        checksum_of_received_firmware = "".join(["%.2x" % i for i in sha256(firmware_data).digest()])
+    else:
+        print('Client error. Unsupported checksum algorithm.')
+
+    print(checksum_of_received_firmware)
+
+    return checksum_of_received_firmware == checksum
+
 
 # UUIDs random para identificar los servicios y características en BLE
 # Características que tiene por defecto:
@@ -33,6 +55,12 @@ class BleThingsboardOtaManager:
     CURRENT_FW_VERSION_CHARACTERISTIC_UUID  = bluetooth.UUID('f4c7000b-40c5-88cc-c1d6-77bfb6baf772')
     FW_STATE_CHARACTERISTIC_UUID            = bluetooth.UUID('f4c7000c-40c5-88cc-c1d6-77bfb6baf772')
 
+    # Característica para distinguir el tipo de OTA
+    OTA_CONNECTIVITY_CHARACTERISTIC_UUID    = bluetooth.UUID('f4c7000d-40c5-88cc-c1d6-77bfb6baf772')
+
+    # Característica sobre la cual recibir el firmware por fragmentos
+    FIRMWARE_FRAGMENT_CHARACTERISTIC_UUID = bluetooth.UUID('f4c7000e-40c5-88cc-c1d6-77bfb6baf772')
+
 
     def __init__(self, ble_service: aioble.Service):
 
@@ -48,8 +76,35 @@ class BleThingsboardOtaManager:
         self.fw_checksum_char = aioble.Characteristic(ble_service, self.FW_CHECKSUM_CHARACTERISTIC_UUID, write=True, capture=True)
         self.fw_checksum_alg_char = aioble.Characteristic(ble_service, self.FW_CHECKSUM_ALG_CHARACTERISTIC_UUID, write=True, capture=True)
 
+        # Atributo "ota_connectivity" para que la Rule Chain distinga el tipo de OTA
+        self.ota_connectivity_char = aioble.Characteristic(ble_service, self.OTA_CONNECTIVITY_CHARACTERISTIC_UUID, read=True)
+
+        # Característica sobre la cual recibir el firmware por fragmentos
+        self.firmware_fragment_char = aioble.BufferedCharacteristic(ble_service, self.FIRMWARE_FRAGMENT_CHARACTERISTIC_UUID, write=True, capture=True, max_len=128)
+
 
     async def manage_attributes(self):
+
+        self.ota_connectivity_char.write("BLE".encode('utf-8'))
+
+
+        _, coded_fw_size = await self.firmware_fragment_char.written()
+        fw_size = int.from_bytes(coded_fw_size, 'big')
+        expected_checksum = "76ca55952f85f0fc5270f46cf1322e9a7d40dfb1780ca71c98e95a8d991cd271"
+        print(type(fw_size), " recibido: ", fw_size)
+        fw_data = bytearray()
+        size_received = 0
+        while size_received < fw_size:
+            _, fw_fragment = await self.firmware_fragment_char.written()
+            # print(type(fw_fragment), " recibido: ", fw_fragment)
+            fw_data.extend(fw_fragment)
+            size_received = size_received + len(fw_fragment)
+        print("Recibidos todos los datos!")
+        if verify_checksum(fw_data, "sha256", expected_checksum):
+            print("ESTÁ BIEN")
+        else:
+            print("NO ESTÁ BIEN")
+        return
 
         while True:
             # Esperar al estado INITIATED en Thingsboard
@@ -65,9 +120,11 @@ class BleThingsboardOtaManager:
             print("fw_checksum_alg: ", data )
 
             # Reportar el estado a Thingsboard
-            self.current_fw_title_char.write("micropython-BLE".encode('utf-8'))
-            self.current_fw_version_char.write("v0".encode('utf-8'))
-            self.fw_state_char.write("UPDATED".encode('utf-8'))
+            self.current_fw_title_char.write("micropython-OTA-client".encode('utf-8'))
+            self.current_fw_version_char.write("v1".encode('utf-8'))
+            self.fw_state_char.write("DOWNLOADING".encode('utf-8'))
+            await asyncio.sleep_ms(30000)
+            self.fw_state_char.write("FAILED".encode('utf-8'))
 
 
 
@@ -118,6 +175,26 @@ async def advertise_service():
         print("Connection from", connection.device)
 
 
+async def heartbeat_LED():
+    """
+    Cambio el estado del LED integrado en la ESP32 siguiendo una secuencia periódica,
+    para indicar físicamente que el programa principal sigue en marcha.
+    """
+
+    led_pin = machine.Pin(2, machine.Pin.OUT)
+    led_pin.off()
+    while True:
+        led_pin.on()
+        await asyncio.sleep_ms(1700)
+        led_pin.off()
+        await asyncio.sleep_ms(100)
+        led_pin.on()
+        await asyncio.sleep_ms(100)
+        led_pin.off()
+        await asyncio.sleep_ms(100)
+
+
+
 
 async def main():
     """
@@ -143,6 +220,7 @@ async def main():
         advertise_service(),
         memory_report(1_000, mem_free_char, mem_alloc_char),
         listen_gc_collect_rpc(gc_collect_char),
+        heartbeat_LED(),
         ota_manager.manage_attributes()
     )
 

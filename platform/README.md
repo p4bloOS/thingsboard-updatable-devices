@@ -2,9 +2,10 @@
 
 > **Índice:**
 > 1. [Despliegue del servidor](#despliegue-del-servidor)
-> 2. [Configuración](#configuración)
-> 3. [Despliegue del Gateway] (#de)
-> 4. [Indicaciones de uso](#conclusión)
+> 2. [Configuración en Thingsboard](#configuración-en-thingsboard)
+> 3. [Despliegue del Gateway de Thingsboard](#despliegue-del-gateway-de-thingsboard)
+> 4. [Despliegue del Gateway MQTT-Lora](#despliegue-del-gateway-mqtt-lora)
+> 5. [Indicaciones de uso](#indicaciones-de-uso)
 
 ### Despliegue del servidor
 
@@ -33,7 +34,7 @@ Credenciales predeterminadas de la interfaz web:
 
 ---
 
-### Configuración
+### Configuración en Thingsboard
 
 Configuraremos Thingsboard desde su interfaz web.
 
@@ -43,7 +44,7 @@ Para tener los permisos necearios para hacer la configuración, ingresaremos com
 
 **1. Importar recursos.**
 
-El directorio [platform/resources](https://github.com/p4bloOS/thingsboard-updatable-devices/tree/master/platform/resources) contiene los siguientes archivos para preparar Thingsboard para la aplicación de ejemplo:
+El directorio [platform/resources](resources) contiene los siguientes archivos para preparar Thingsboard para la aplicación de ejemplo:
 
 - `micropython_updatable_profile.json`
 
@@ -56,7 +57,7 @@ El directorio [platform/resources](https://github.com/p4bloOS/thingsboard-updata
 - `updatable_devices_dashboard.json`
 
   Panel *Updatable Devices* para visualizar la aplicación de ejemplo y lanzar actualizaciones OTA.
-  (importar desde la sección *Tableros*)
+  (importar desde la sección *Tableros*)conclusión
 
 
 **2. Crear dispositivos**
@@ -64,6 +65,20 @@ El directorio [platform/resources](https://github.com/p4bloOS/thingsboard-updata
 - Desde la sección *Entidades/Dispositivos* crearemos un nuevo dispositivo (p.ej. llamado ESP32-Micropython-device) y le asignaremos el perfil *Micropython Updatable*.
 
 - Desde la misma sección crearemos otro dispositivo (p.ej. llamado RaspberryPiZero-Linux-device) y le asignaremos el perfil *Linux Updatable*.
+
+
+---
+
+### Despliegue del Gateway de Thingsboard
+
+Véase: [platform/tb-gateway/README.md](tb-gateway/README.md)
+
+
+---
+
+### Despliegue del Gateway MQTT-Lora
+
+Véase: [platform/lora-gateway/README.md](lora-gateway/README.md)
 
 
 ---

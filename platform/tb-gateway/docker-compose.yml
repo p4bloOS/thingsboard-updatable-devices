@@ -23,7 +23,7 @@ services:
     environment:
       - host=host.docker.internal
       - port=1883
-      - accessToken=00Tzm3ALo56iV24V68lC
+      - accessToken=ODyKE7h3knqdIwdcIEcm
 
     # Volumes bind
     volumes:
