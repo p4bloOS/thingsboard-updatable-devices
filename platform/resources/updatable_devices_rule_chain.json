@@ -1,6 +1,6 @@
 {
   "ruleChain": {
-    "name": "Updatable Rule Chain",
+    "name": "Updatable-Devices-rule-chain",
     "type": "CORE",
     "firstRuleNodeId": null,
     "root": false,
@@ -11,7 +11,7 @@
     }
   },
   "metadata": {
-    "version": 84,
+    "version": 4,
     "firstNodeIndex": 2,
     "nodes": [
       {

@@ -50,7 +50,7 @@ class BleThingsboardOtaManager:
         self.fw_title_char = aioble.BufferedCharacteristic(ble_service, self.FW_TITLE_CHARACTERISTIC_UUID, write=True, capture=True, max_len=64)
         self.fw_version_char = aioble.Characteristic(ble_service, self.FW_VERSION_CHARACTERISTIC_UUID, write=True, capture=True)
         self.fw_size_char = aioble.Characteristic(ble_service, self.FW_SIZE_CHARACTERISTIC_UUID, write=True,capture=True)
-        self.fw_checksum_char = aioble.Characteristic(ble_service, self.FW_CHECKSUM_CHARACTERISTIC_UUID, write=True, capture=True)
+        self.fw_checksum_char = aioble.BufferedCharacteristic(ble_service, self.FW_CHECKSUM_CHARACTERISTIC_UUID, write=True, capture=True, max_len=64)
         self.fw_checksum_alg_char = aioble.Characteristic(ble_service, self.FW_CHECKSUM_ALG_CHARACTERISTIC_UUID, write=True, capture=True)
 
         # Atributo "ota_connectivity" para que la Rule Chain distinga el tipo de OTA
@@ -66,15 +66,15 @@ class BleThingsboardOtaManager:
         (fw_title, fw_version, fw_size, fw_checksum, fw_checksum_alg)
         """
         _ , data = await self.fw_title_char.written()
-        fw_title = str(data)
+        fw_title = data.decode('utf-8')
         _ , data = await self.fw_version_char.written()
-        fw_version = str(data)
+        fw_version = data.decode('utf-8')
         _ , data = await self.fw_size_char.written()
-        fw_size = str(data)
+        fw_size = data.decode('utf-8')
         _ , data = await self.fw_checksum_char.written()
-        fw_checksum = str(data)
+        fw_checksum = data.decode('utf-8')
         _ , data = await self.fw_checksum_alg_char.written()
-        fw_checksum_alg = str(data)
+        fw_checksum_alg = data.decode('utf-8')
         return(fw_title, fw_version, fw_size, fw_checksum, fw_checksum_alg)
 
 
@@ -96,12 +96,6 @@ class BleThingsboardOtaManager:
 
 
     def _verify_checksum(self, firmware_data, checksum_alg, checksum):
-        if firmware_data is None:
-            print('Firmware was not received!')
-            return False
-        if checksum is None:
-            print('Checksum was\'t provided!')
-            return False
         checksum_of_received_firmware = None
         print('Checksum algorithm is: %s' % checksum_alg)
         if checksum_alg.lower() == "sha256":
@@ -152,12 +146,11 @@ class BleThingsboardOtaManager:
         self.fw_state_char.write("DOWNLOADED".encode('utf-8'))
 
         # Verificación del firmware recibido
-        # TO-DO: leer bien el fw_checksum_alg
-        expected_checksum = "76ca55952f85f0fc5270f46cf1322e9a7d40dfb1780ca71c98e95a8d991cd271"
-        fw_checksum_alg = "sha256"
-        if not self._verify_checksum(fw_data, fw_checksum_alg, expected_checksum):
+        if not self._verify_checksum(fw_data, fw_checksum_alg, fw_checksum):
             self.fw_state_char.write("FAILED".encode('utf-8'))
-            self.fw_error_char.write("No se ha podido verificar el checksum")
+            error_msg = "No se ha podido verificar el checksum"
+            print(error_msg)
+            self.fw_error_char.write(error_msg)
             return
         self.fw_state_char.write("VERIFIED".encode('utf-8'))
 

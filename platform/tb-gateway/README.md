@@ -26,7 +26,7 @@ docker compose start tb-gateway       # Reanudar el contenedor
 
 **2. Configuración del conector BLE**
 
-En Thingsboard, dentro del Gateway recién creado, añadiremos un nuevo conector BLE llamado *My-BLE-Connector*.
+En Thingsboard, dentro del Gateway recién creado, añadiremos un nuevo conector BLE llamado (necesariamente) *My-BLE-Connector*.
 Para su configuración emplearemos el fichero [BLE-connector-config.json](BLE-connector-config.json), que está diseñado para cumplir con los requisitos de la aplicación de ejemplo.
 En ese fichero se define, principalmente, la asociación entre elementos de Thingsboard, tales como atributos o
 métodos RPC, y las caracterísiticas de BLE que emplea el dispositivo. Cambiaremos la MAC de dicha configuración
