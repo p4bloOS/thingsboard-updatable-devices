@@ -12,4 +12,4 @@ WORKDIR /app
 RUN pip install -r requirements.txt
 
 # Ejecuta el script
-CMD ["uvicorn", "ble_ota_transfer_api:app", "--host", "0.0.0.0", "--port", "5000", "--reload"]
+CMD ["uvicorn", "ble_ota_transfer_api:app", "--host", "0.0.0.0", "--port", "5000" ]

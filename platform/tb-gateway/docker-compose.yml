@@ -6,15 +6,6 @@ services:
     restart: always
     privileged: true
 
-    # Ports bindings - required by some connectors
-    #ports:
-    # - "5000:5000" # Comment if you don't use REST connector and change if you use another port
-    # Uncomment and modify the following ports based on connector usage:
-    #        - "1052:1052" # BACnet connector
-    #        - "5026:5026" # Modbus TCP connector (Modbus Slave)
-    #        - "50000:50000/tcp" # Socket connector with type TCP
-    #        - "50000:50000/udp" # Socket connector with type UDP
-
     # Necessary mapping for Linux
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -30,8 +21,34 @@ services:
       - tb-gw-config:/thingsboard_gateway/config
       - tb-gw-logs:/thingsboard_gateway/logs
       - ./tb-gw-extensions:/thingsboard_gateway/extensions
-      - /var/run/dbus:/var/run/dbus
-      - /dev:/dev
+      - /var/run/dbus:/var/run/dbus #
+      - /dev:/dev #                 # Necesario para usar Bluetooth
+
+    # Ports bindings - required by some connectors
+    #ports:
+    # - "5000:5000" # Comment if you don't use REST connector and change if you use another port
+    # Uncomment and modify the following ports based on connector usage:
+    #        - "1052:1052" # BACnet connector
+    #        - "5026:5026" # Modbus TCP connector (Modbus Slave)
+    #        - "50000:50000/tcp" # Socket connector with type TCP
+    #        - "50000:50000/udp" # Socket connector with type UDP
+
+  ble-ota-transfer:
+    build:
+      context: ./ble-ota-transfer-service
+      # dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - tb-gw-config:/tb-gw-config/
+      - /var/run/dbus:/var/run/dbus #
+      - /dev:/dev #                 # Necesario para usar Bluetooth
+
+    # Necessary mapping for Linux
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - tb-gateway
 
 # Volumes declaration for configurations, extensions and configuration
 volumes:

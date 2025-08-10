@@ -44,6 +44,12 @@
           "characteristicUUID": "f4c7000c-40c5-88cc-c1d6-77bfb6baf772",
           "method": "read",
           "valueExpression": "[:]"
+        },
+        {
+          "key": "fw_error",
+          "characteristicUUID": "f4c7000f-40c5-88cc-c1d6-77bfb6baf772",
+          "method": "read",
+          "valueExpression": "[:]"
         }
       ],
       "attributes": [

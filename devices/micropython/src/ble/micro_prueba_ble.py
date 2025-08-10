@@ -3,39 +3,14 @@ import gc
 import machine
 import bluetooth
 import aioble
-
 from hashlib import sha256
 
-def verify_checksum(firmware_data, checksum_alg, checksum):
-    if firmware_data is None:
-        print('Firmware was not received!')
-        return False
-    if checksum is None:
-        print('Checksum was\'t provided!')
-        return False
-    checksum_of_received_firmware = None
-    print('Checksum algorithm is: %s' % checksum_alg)
-    if checksum_alg.lower() == "sha256":
-        checksum_of_received_firmware = "".join(["%.2x" % i for i in sha256(firmware_data).digest()])
-    else:
-        print('Client error. Unsupported checksum algorithm.')
-
-    print(checksum_of_received_firmware)
-
-    return checksum_of_received_firmware == checksum
-
-
-# UUIDs random para identificar los servicios y características en BLE
-# Características que tiene por defecto:
-# 00002b29-0000-1000-8000-00805f9b34fb
-# 00002a05-0000-1000-8000-00805f9b34fb
-# 00002b3a-0000-1000-8000-00805f9b34fb
-# # GENERIC_ATTRIBUTE_SERVICE_UUID = bluetooth.UUID('00001801-0000-1000-8000-00805f9b34fb')
+# TO-DO: introducir logging
 
 DEVICE_NAME = "Micropython-updatable-thing"
-CUSTOM_SERVICE_UUID                  = bluetooth.UUID('f4c70001-40c5-88cc-c1d6-77bfb6baf772')
+CUSTOM_SERVICE_UUID = bluetooth.UUID('f4c70001-40c5-88cc-c1d6-77bfb6baf772')
 
-# Características BLE para la aplicación
+# Características BLE para la aplicación (no han de entrar en conflicto con las del BleThingsboardOtaManager)
 MEMFREE_CHARACTERISTIC_UUID          = bluetooth.UUID('f4c70002-40c5-88cc-c1d6-77bfb6baf772')
 MEMALLOC_CHARACTERISTIC_UUID         = bluetooth.UUID('f4c70003-40c5-88cc-c1d6-77bfb6baf772')
 GC_COLLECT_RPC_CHARACTERISTIC_UUID   = bluetooth.UUID('f4c70004-40c5-88cc-c1d6-77bfb6baf772')
@@ -54,6 +29,7 @@ class BleThingsboardOtaManager:
     CURRENT_FW_TITLE_CHARACTERISTIC_UUID    = bluetooth.UUID('f4c7000a-40c5-88cc-c1d6-77bfb6baf772')
     CURRENT_FW_VERSION_CHARACTERISTIC_UUID  = bluetooth.UUID('f4c7000b-40c5-88cc-c1d6-77bfb6baf772')
     FW_STATE_CHARACTERISTIC_UUID            = bluetooth.UUID('f4c7000c-40c5-88cc-c1d6-77bfb6baf772')
+    FW_ERROR_CHARACTERISTIC_UUID            = bluetooth.UUID('f4c7000f-40c5-88cc-c1d6-77bfb6baf772')
 
     # Característica para distinguir el tipo de OTA
     OTA_CONNECTIVITY_CHARACTERISTIC_UUID    = bluetooth.UUID('f4c7000d-40c5-88cc-c1d6-77bfb6baf772')
@@ -68,6 +44,7 @@ class BleThingsboardOtaManager:
         self.current_fw_title_char = aioble.Characteristic(ble_service, self.CURRENT_FW_TITLE_CHARACTERISTIC_UUID, read=True)
         self.current_fw_version_char = aioble.Characteristic(ble_service, self.CURRENT_FW_VERSION_CHARACTERISTIC_UUID, read=True)
         self.fw_state_char = aioble.Characteristic(ble_service, self.FW_STATE_CHARACTERISTIC_UUID, read=True)
+        self.fw_error_char = aioble.Characteristic(ble_service, self.FW_ERROR_CHARACTERISTIC_UUID, read=True)
 
         # Atributos compartidos para la actuaización OTA
         self.fw_title_char = aioble.BufferedCharacteristic(ble_service, self.FW_TITLE_CHARACTERISTIC_UUID, write=True, capture=True, max_len=64)
@@ -83,49 +60,111 @@ class BleThingsboardOtaManager:
         self.firmware_fragment_char = aioble.BufferedCharacteristic(ble_service, self.FIRMWARE_FRAGMENT_CHARACTERISTIC_UUID, write=True, capture=True, max_len=128)
 
 
-    async def manage_attributes(self):
+    async def _wait_for_OTA_startup(self):
+        """
+        Espera al estado INITIATED en Thingsboard y devuelve una tupla de str
+        (fw_title, fw_version, fw_size, fw_checksum, fw_checksum_alg)
+        """
+        _ , data = await self.fw_title_char.written()
+        fw_title = str(data)
+        _ , data = await self.fw_version_char.written()
+        fw_version = str(data)
+        _ , data = await self.fw_size_char.written()
+        fw_size = str(data)
+        _ , data = await self.fw_checksum_char.written()
+        fw_checksum = str(data)
+        _ , data = await self.fw_checksum_alg_char.written()
+        fw_checksum_alg = str(data)
+        return(fw_title, fw_version, fw_size, fw_checksum, fw_checksum_alg)
+
+
+    async def _receive_firmware_data(self):
+        """
+        Recibe y retorna el firmware en fragmentos, través de la característica BLE
+        dedicada a ello.
+        """
+        _, coded_fw_size = await self.firmware_fragment_char.written()
+        fw_size = int.from_bytes(coded_fw_size, 'big')
+        print(f"Esperando recibir {fw_size} bytes de firmware")
+        fw_data = bytearray()
+        bytes_received = 0
+        while bytes_received < fw_size:
+            _, fw_fragment = await self.firmware_fragment_char.written()
+            fw_data.extend(fw_fragment)
+            bytes_received = bytes_received + len(fw_fragment)
+        return fw_data
+
+
+    def _verify_checksum(self, firmware_data, checksum_alg, checksum):
+        if firmware_data is None:
+            print('Firmware was not received!')
+            return False
+        if checksum is None:
+            print('Checksum was\'t provided!')
+            return False
+        checksum_of_received_firmware = None
+        print('Checksum algorithm is: %s' % checksum_alg)
+        if checksum_alg.lower() == "sha256":
+            checksum_of_received_firmware = "".join(["%.2x" % i for i in sha256(firmware_data).digest()])
+        else:
+            print('Client error. Unsupported checksum algorithm.')
+        print(checksum_of_received_firmware)
+        return checksum_of_received_firmware == checksum
+
+
+    async def manage_OTA_procedure_loop(self):
+        """
+        Itera infinitamente sobre el procedimiento de la OTA.
+        """
+        while True:
+            await self._manage_OTA_procedure()
+
+
+    async def _manage_OTA_procedure(self):
+        """
+        Maneja el procedimiento de la OTA.
+        """
 
         self.ota_connectivity_char.write("BLE".encode('utf-8'))
 
+        (fw_title, fw_version, fw_size, fw_checksum, fw_checksum_alg
+            ) = await self._wait_for_OTA_startup()
+        print(f"Actualización iniciada desde Thingsboard: "
+              f"fw_title={fw_title}, "
+              f"fw_version={fw_version}, "
+              f"fw_size={fw_size}, "
+              f"fw_checksum={fw_checksum}, "
+              f"fw_checksum_alg={fw_checksum_alg}"
+        )
 
-        _, coded_fw_size = await self.firmware_fragment_char.written()
-        fw_size = int.from_bytes(coded_fw_size, 'big')
+        # TO-DO: Comprobar si hace falta una actualización
+
+        # Reportar el estado DOWNLOADING
+        # (al recibirlo en Thingsboard, el rule chain activará ls transferencia de la OTA)
+        self.current_fw_title_char.write("micropython-OTA-client".encode('utf-8'))
+        self.current_fw_version_char.write("v1".encode('utf-8'))
+        self.fw_state_char.write("DOWNLOADING".encode('utf-8'))
+
+        # Recibir el firmware y a continuación reportar el estado DOWNLOADED
+        print("En espera de recibir el nuevo firmware")
+        fw_data = await self._receive_firmware_data()
+        print("Se ha recibido el firmware")
+        self.fw_state_char.write("DOWNLOADED".encode('utf-8'))
+
+        # Verificación del firmware recibido
+        # TO-DO: leer bien el fw_checksum_alg
         expected_checksum = "76ca55952f85f0fc5270f46cf1322e9a7d40dfb1780ca71c98e95a8d991cd271"
-        print(type(fw_size), " recibido: ", fw_size)
-        fw_data = bytearray()
-        size_received = 0
-        while size_received < fw_size:
-            _, fw_fragment = await self.firmware_fragment_char.written()
-            # print(type(fw_fragment), " recibido: ", fw_fragment)
-            fw_data.extend(fw_fragment)
-            size_received = size_received + len(fw_fragment)
-        print("Recibidos todos los datos!")
-        if verify_checksum(fw_data, "sha256", expected_checksum):
-            print("ESTÁ BIEN")
-        else:
-            print("NO ESTÁ BIEN")
-        return
-
-        while True:
-            # Esperar al estado INITIATED en Thingsboard
-            _ , data = await self.fw_title_char.written()
-            print("fw_title: ", data )
-            _ , data = await self.fw_version_char.written()
-            print("fw_version: ", data )
-            _ , data = await self.fw_size_char.written()
-            print("fw_size: ", data )
-            _ , data = await self.fw_checksum_char.written()
-            print("fw_checksum: ", data )
-            _ , data = await self.fw_checksum_alg_char.written()
-            print("fw_checksum_alg: ", data )
-
-            # Reportar el estado a Thingsboard
-            self.current_fw_title_char.write("micropython-OTA-client".encode('utf-8'))
-            self.current_fw_version_char.write("v1".encode('utf-8'))
-            self.fw_state_char.write("DOWNLOADING".encode('utf-8'))
-            await asyncio.sleep_ms(30000)
+        fw_checksum_alg = "sha256"
+        if not self._verify_checksum(fw_data, fw_checksum_alg, expected_checksum):
             self.fw_state_char.write("FAILED".encode('utf-8'))
+            self.fw_error_char.write("No se ha podido verificar el checksum")
+            return
+        self.fw_state_char.write("VERIFIED".encode('utf-8'))
 
+        # TO-DO: Guardar el firmware en el archivo correspondiente
+        print("Ahora se procedería a la actualización")
+
+        # Reiniciar
 
 
 async def memory_report(
@@ -194,8 +233,6 @@ async def heartbeat_LED():
         await asyncio.sleep_ms(100)
 
 
-
-
 async def main():
     """
     Inicializa el rol Peropheral de BLE y ejecuta concurrentemente las tareas
@@ -221,7 +258,7 @@ async def main():
         memory_report(1_000, mem_free_char, mem_alloc_char),
         listen_gc_collect_rpc(gc_collect_char),
         heartbeat_LED(),
-        ota_manager.manage_attributes()
+        ota_manager.manage_OTA_procedure_loop()
     )
 
 
