@@ -14,10 +14,10 @@ import gc
 
 # Loggers
 log = utils.get_custom_logger("main")
-utils.get_custom_logger("ota_helper")
+utils.get_custom_logger("thingsboard_ota_helper")
 
 # Thingsboard MQTT client
-client = utils.get_updatable_thingsboard_client()
+client = utils.get_updatable_mqtt_client()
 
 
 async def memory_report(period_ms):

@@ -1,0 +1,4 @@
+{
+  "connection_type": "BLE",
+  "config_filename": "ble_config.json"
+}

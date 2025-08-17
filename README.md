@@ -23,7 +23,7 @@ Ramas de características desarrolladas hasta la fecha:
 
 ### Para **Micropython**:
 
-- Biblioteca **ota-helper**, capaz de gestionar la comunicación con Thingsboard relativa a las actualizaciones OTA y aplicar un paquete OTA sobre el sistema de ficheros de micropython.
+- Biblioteca **thingsboard-ota-helper**, capaz de gestionar la comunicación con Thingsboard relativa a las actualizaciones OTA y aplicar un paquete OTA sobre el sistema de ficheros de micropython.
 - Aplicación de ejemplo para un dispositivo cliente de Thingsboard, actualizable y capaz de realizar otras tareas concurrentemente.
 - Paquetes [mip](https://docs.micropython.org/en/latest/reference/packages.html) relativos a las 2 características anteriores. Véase el directorio [devices/micropython/mip_packages](devices/micropython/mip_packages).
 - Herramienta [gen_ota_package.py](devices/micropython/tools/gen_ota_package.py) para generar paquetes de actualización OTA en formato **tar.gz**.
@@ -31,7 +31,7 @@ Ramas de características desarrolladas hasta la fecha:
 
 ### Para **Linux embebido** (*POR IMPLEMENTAR*):
 
-- Adaptación a Python estándar sobre Linux de la biblioteca ota-helper y el programa de ejemplo.
+- Adaptación a Python estándar sobre Linux de la biblioteca thingsboard-ota-helper y el programa de ejemplo.
 - Imagen personalizada de Linux creada con [Buildroot](https://buildroot.org/), que contiene un servicio para comunicarse con Thingsboard y aplicar las actualizaciones mediante [RAUC](https://rauc.io/)
 - Posibles herramientas por definir.
 

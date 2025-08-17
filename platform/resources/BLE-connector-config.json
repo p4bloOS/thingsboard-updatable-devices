@@ -5,7 +5,7 @@
   "devices": [
     {
       "name": "ESP32-Micropython-BLE-device",
-      "deviceType": "Micropython Updatable",
+      "deviceType": "Micropython-Updatable-profile",
       "MACAddress": "08:A6:F7:A1:8D:96",
       "pollPeriod": 1000,
       "showMap": true,
@@ -92,5 +92,8 @@
       ]
     }
   ],
-  "id": "b262cd56-40d2-4d1c-b03d-f8814c55342b"
+  "id": "b262cd56-40d2-4d1c-b03d-f8814c55342b",
+  "logLevel": "INFO",
+  "enableRemoteLogging": true,
+  "configVersion": "3.7.6"
 }

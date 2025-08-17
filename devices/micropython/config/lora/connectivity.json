@@ -1,0 +1,4 @@
+{
+  "connection_type": "LoRa",
+  "config_filename": "lora_config.json"
+}

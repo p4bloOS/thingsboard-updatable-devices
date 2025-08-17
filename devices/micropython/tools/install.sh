@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
-set -eu
-
+set -e
 cd $(dirname $0)
 
-mpremote mip install ../mip_packages/ota-helper-lib.json
-mpremote mip --target "" install ../mip_packages/example-program.json
+connectivity_variant="wifi"
+if [ -n "$1" ]; then
+    connectivity_variant="$1"
+fi
+
+mpremote mip install ../mip_packages/thingsboard-ota-helpers.json
+mpremote mip --target "" install "../mip_packages/example-${connectivity_variant}.json"

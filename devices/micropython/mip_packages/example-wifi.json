@@ -1,0 +1,11 @@
+{
+  "urls": [
+    ["boot.py", "../src/boot.py"],
+    ["main.py", "../src/app/wifi/main.py"],
+    ["FW_METADATA.json", "../src/FW_METADATA.json"],
+    ["lib/utils.py", "../src/lib/utils.py"],
+    ["config/ota_config.json", "../config/ota_config.json"],
+    ["config/connectivity.json", "../config/wifi/connectivity.json"],
+    ["config/wifi_config.json", "../config/wifi/wifi_config.json"]
+  ]
+}

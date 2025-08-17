@@ -4,10 +4,10 @@
 
 Este es un sistema desarrollado para ser instalado como el firmware de un dispositivo con Micropython, con la finalidad de habilitar en dicho dispositivo la actualización OTA a través de la plataforma Thingsboard. El sistema se divide en 2 componentes:
 
-- **Biblioteca *ota-helper*** (paquete mip en [mip_packages/ota-helper-lib.json](mip_packages/ota-helper-lib.json))
+- **Biblioteca *thingsboard-ota-helper*** (paquete mip en [mip_packages/thingsboard-ota-helper-lib.json](mip_packages/thingsboard-ota-helper-lib.json))
 
     Su paquete mip instala el módulo [**ota_helper.py**](src/lib/ota_helper.py) junto con sus dependencias. Este módulo define 2 clases principales:
-    - `UpdatableTBMqttClient`: Clase derivada de `TBDeviceMqttClient` perteneciente al [thingsboard-micropython-client-sdk](https://github.com/p4bloOS/thingsboard-micropython-client-sdk), para perfilar la comunicación con Thingsboard relativa a la actualización OTA y tener cuenta nuestro método propio para la instalación del paquete OTA recibido. Lo particular de este cliente, a grandes rasgos, es que, cuando ha terminado la transferencia del nuevo firmware, lo guarda en un archivo y reinicia el dispositivo, esperando que dicho paquete se instale en la rutina de inicio.
+    - `UpdatableMqttClient`: Clase derivada de `TBDeviceMqttClient` perteneciente al [thingsboard-micropython-client-sdk](https://github.com/p4bloOS/thingsboard-micropython-client-sdk), para perfilar la comunicación con Thingsboard relativa a la actualización OTA y tener cuenta nuestro método propio para la instalación del paquete OTA recibido. Lo particular de este cliente, a grandes rasgos, es que, cuando ha terminado la transferencia del nuevo firmware, lo guarda en un archivo y reinicia el dispositivo, esperando que dicho paquete se instale en la rutina de inicio.
     - `OTAInstaller`: Clase dedicada a la instalación de un paquete OTA recibido, con métodos para comprobar el correcto formato del archivo, su coherencia con los datos reportados por la plataforma y su instalación sobre el sistema de ficheros con diferentes parámetros de personalización. Está pensada para ser usada en la rutina de inicio del dispositivo, tras comprobar que existe un nuevo paquete OTA listo para instalarse.
     Esta clase ha sido en parte inspirada por el proyecto [uota](https://github.com/mkomon/uota) del usuario [mkomon](https://github.com/mkomon).
 
@@ -16,11 +16,11 @@ Este es un sistema desarrollado para ser instalado como el firmware de un dispos
 
 - **Programa de ejemplo** (paquete mip en [mip_packages/example-program.json](mip_packages/example-program.json))
 
-    Este componente hace uso de la biblioteca ota-helper para demostrar su funcionamiento. Está conformado por los siguientes scripts y archivos de configuración (con sus rutas tal como se verían en el dispositivo una vez instalados):
+    Este componente hace uso de la biblioteca thingsboard-ota-helper para demostrar su funcionamiento. Está conformado por los siguientes scripts y archivos de configuración (con sus rutas tal como se verían en el dispositivo una vez instalados):
     - [`/boot.py`](src/boot.py): Script de incio que establece la conexión de red, instala el paquete OTA si hay uno nuevo disponible y comunica a Thingsboard el resultado.
     - [`/main.py`](src/main.py): Script principal que realiza varias tareas en paralelo mediante [asyncio](https://docs.micropython.org/en/latest/library/asyncio.html) mientras mantiene una escucha periódica de los mensajes de Thingsboard.
-    - [`/FW_METADATA.json`](src/FW_METADATA.json): Fichero en la raíz del dispositivo que indica el título y la versión actual del firmware. (necesario para que la bilioteca ota-helper funcione)
-    - [`/lib/utils.py`](src/lib/utils.py): Biblioteca de utilidades de la cual se sirven *boot.py* y *main.py*. Ayuda a gestionar la conexión a la red, la lectura de los archivos de configuración, el logging (mediante la biblioteca [logging](https://github.com/micropython/micropython-lib/blob/master/python-stdlib/logging/logging.py)) y la creación de un *UpdatableTBMqttClient* configurado en base a los ficheros de configuración.
+    - [`/FW_METADATA.json`](src/FW_METADATA.json): Fichero en la raíz del dispositivo que indica el título y la versión actual del firmware. (necesario para que la bilioteca thingsboard-ota-helper funcione)
+    - [`/lib/utils.py`](src/lib/utils.py): Biblioteca de utilidades de la cual se sirven *boot.py* y *main.py*. Ayuda a gestionar la conexión a la red, la lectura de los archivos de configuración, el logging (mediante la biblioteca [logging](https://github.com/micropython/micropython-lib/blob/master/python-stdlib/logging/logging.py)) y la creación de un *UpdatableMqttClient* configurado en base a los ficheros de configuración.
     - [`/config/network_config.json`](config/network_config.json): Contiene atributos para establecer conexión con la red.
     - [`/config/ota_config.json`](config/ota_config.json): Contiene atributos para configurar la actualización OTA.
     - [`/config/thingsboard_config.json`](config/thingsboard_config.json): Contiene atributos para configurar la conexión con Thingsboard.
@@ -58,13 +58,13 @@ Borrar todo todos los ficheros existentes en el dispositivo:
 mpremote rm -rv :/
 ```
 
-**Paquete mip *ota-helper-lib***
+**Paquete mip *thingsboard-ota-helper-lib***
 
 Contiene la biblioteca ota_helper.py y sus dependencias.
 ```bash
 # Instalación desde el contenido clonado
 cd devices/micropython/mip_packages
-mpremote mip install ota-helper-lib.json
+mpremote mip install thingsboard-ota-helper-lib.json
 ```
 
 **Paquete mip *example-program***
