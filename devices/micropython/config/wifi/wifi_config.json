@@ -1,8 +1,8 @@
 {
-  "SSID": "",
-  "password": "",
-  "server_host": "192.168.1.139",
+  "SSID": "MiFibra-6A8C",
+  "password": "xD9JWamz",
+  "server_host": "192.168.1.126",
   "server_port": "1883",
-  "device_access_token": "LVgsKM2ShspRxjBREnYK",
+  "device_access_token": "g10tiwbH0nGxkhIzgFLC",
   "check_msg_period_ms": 1000
 }

@@ -1,17 +1,21 @@
 import logging
 from time import sleep
 from machine import reset
-from sdk_utils import verify_checksum
 from sys import modules as sys_modules
 from json import loads as json_loads, dumps as json_dumps
-import lib.umqtt
-sys_modules['umqtt']=lib.umqtt
-from tb_device_mqtt import (
+from tb_client_sdk.sdk_utils import verify_checksum
+import lib.tb_client_sdk.umqtt
+sys_modules['umqtt']=lib.tb_client_sdk.umqtt
+import lib.tb_client_sdk.sdk_utils
+sys_modules['sdk_utils']=lib.tb_client_sdk.sdk_utils
+import lib.tb_client_sdk.provision_client
+sys_modules['provision_client']=lib.tb_client_sdk.provision_client
+from tb_client_sdk.tb_device_mqtt import (
     TBDeviceMqttClient, ATTRIBUTES_TOPIC, FW_VERSION_ATTR, FW_TITLE_ATTR,
     FW_STATE_ATTR, FW_CHECKSUM_ALG_ATTR, FW_CHECKSUM_ATTR, REQUIRED_SHARED_KEYS
 )
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("updatable_mqtt_client")
 EXPECTED_METADATA_SUFFIX = ".metadata.json" # Sufijo para el archivo de metadatos asociado al paquete OTA
 
 

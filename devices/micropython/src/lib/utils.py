@@ -117,7 +117,8 @@ class OTAReporter():
         self.type = type
         if type == "Wifi":
             get_custom_logger("updatable_mqtt_client")
-            self.connection_object, _ = get_updatable_mqtt_client()
+            self.connection_object = get_updatable_mqtt_client()
+            self.connection_object.connect()
         elif type == "BLE":
             get_custom_logger("updatable_ble_peripheral")
             self.connection_object, _ = get_updatable_ble_peripheral()
@@ -131,10 +132,11 @@ class OTAReporter():
     def report_failure(self, error_msg: str):
 
         if self.type == "Wifi":
-            self.connection_object.connect()
             self.connection_object.send_telemetry(
                 { "fw_state": "FAILED", "fw_error": error_msg }
             )
+            log.debug("Estado FAILED reportado a Thingsboard")
+
         elif self.type == "BLE":
             import asyncio
             async def async_report():
@@ -149,18 +151,21 @@ class OTAReporter():
                 except Exception:
                     log.debug("Publicitación terminada")
             asyncio.run(async_report())
+
         elif self.type == "LoRa":
             pass
 
 
     def report_succes(self, new_fw_title: str, new_fw_version: str):
+
         if self.type == "Wifi":
-            self.connection_object.connect()
             self.connection_object.send_telemetry({
                 "current_fw_title": new_fw_title,
                 "current_fw_version": new_fw_version,
                 "fw_state": "UPDATED"
             })
+            log.debug("Estado UPDATED reportado a Thingsboard")
+
         elif self.type == "BLE":
             import asyncio
             async def async_report():
@@ -176,6 +181,7 @@ class OTAReporter():
                 except Exception:
                     log.debug("Publicitación terminada")
             asyncio.run(async_report())
+
         elif self.type == "LoRa":
             pass
 

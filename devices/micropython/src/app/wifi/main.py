@@ -4,17 +4,15 @@ Es un cliente de la plataforma Thingsboard que permanece a la escucha de
 actualizaciones OTA mientras realiza otras tareas.
 """
 
-import time
-import machine
-import random
-import json
-import utils
 import asyncio
-import gc
+from gc import mem_free as gc_mem_free, mem_alloc as gc_mem_alloc, collect as gc_collect
+from machine import Pin as machine_Pin
+from json import dumps as json_dumps
+import utils
 
 # Loggers
 log = utils.get_custom_logger("main")
-utils.get_custom_logger("thingsboard_ota_helper")
+utils.get_custom_logger("updatable_mqtt_client")
 
 # Thingsboard MQTT client
 client = utils.get_updatable_mqtt_client()
@@ -26,8 +24,8 @@ async def memory_report(period_ms):
     asignada y libre.
     """
     while True:
-        mem_free = gc.mem_free()
-        mem_alloc = gc.mem_alloc()
+        mem_free = gc_mem_free()
+        mem_alloc = gc_mem_alloc()
         telemetry = {"memory_free" : mem_free, "memory_allocated": mem_alloc}
         client.send_telemetry(telemetry)
         await asyncio.sleep_ms(period_ms)
@@ -39,7 +37,7 @@ async def heartbeat_LED():
     para indicar físicamente que el programa principal sigue en marcha.
     """
 
-    led_pin = machine.Pin(2, machine.Pin.OUT)
+    led_pin = machine_Pin(2, machine_Pin.OUT)
     led_pin.off()
     while True:
         led_pin.on()
@@ -66,18 +64,18 @@ async def listen_thingsboard():
     def on_server_side_rpc_request(request_id, request_body):
         if request_body["method"] == "garbage_collection":
             log.info("Garbage Collection invocado desde la plataforma")
-            gc.collect()
+            gc_collect()
             client._client.publish(
                 f"v1/devices/me/rpc/response/{request_id}",
-                json.dumps({"Garbage collection": "Done"}),
+                json_dumps({"Garbage collection": "Done"}),
                 qos=client.quality_of_service
             )
 
     client.subscribe_to_all_attributes(on_attributes_change)
     client.set_server_side_rpc_request_handler(on_server_side_rpc_request)
 
-    tb_config = utils.read_config_file("thingsboard_config.json")
-    check_msg_period_ms = tb_config['check_msg_period_ms']
+    wifi_config = utils.read_config_file("wifi_config.json")
+    check_msg_period_ms = wifi_config['check_msg_period_ms']
 
     while True:
         client._client.check_msg()
@@ -88,6 +86,7 @@ async def main():
     """
     Ejecuta concurrentemente las tareas asíncronas definidas.
     """
+    client.send_attributes({"ota_connectivity" : "Wifi"})
     await asyncio.gather(
         heartbeat_LED(),
         memory_report(1_000),

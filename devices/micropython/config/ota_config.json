@@ -1,6 +1,14 @@
 {
   "chunk_size": "",
   "tmp_filename": "new_firmware.tar.gz",
-  "excluded_files": ["lib/thingsboard_ota_helper.py", "boot.py"],
+  "excluded_files": [
+    "boot.py",
+    "lib/aioble/",
+    "lib/logging.mpy",
+    "lib/tarfile/",
+    "lib/tb_client_sdk/",
+    "lib/thingsboard_ota_helpers/",
+    "lib/utils.py"
+  ],
   "clear_filesystem": true
 }
