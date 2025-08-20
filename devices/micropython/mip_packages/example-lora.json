@@ -1,0 +1,11 @@
+{
+  "urls": [
+    ["boot.py", "../src/boot.py"],
+    ["main.py", "../src/app/lora/main.py"],
+    ["FW_METADATA.json", "../src/app/lora/FW_METADATA.json"],
+    ["lib/utils.py", "../src/lib/utils.py"],
+    ["config/ota_config.json", "../config/ota_config.json"],
+    ["config/connectivity.json", "../config/lora/connectivity.json"],
+    ["config/lora_config.json", "../config/lora/lora_config.json"]
+  ]
+}

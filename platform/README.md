@@ -1,21 +1,26 @@
 ## Plataforma Thingsboard aplicada a una flota actualizable
 
-### Instalación
+> **Índice:**
+> 1. [Despliegue del servidor](#despliegue-del-servidor)
+> 2. [Configuración en Thingsboard](#configuración-en-thingsboard)
+> 3. [Despliegue del Gateway de Thingsboard](#despliegue-del-gateway-de-thingsboard)
+> 4. [Despliegue del Gateway MQTT-Lora](#despliegue-del-gateway-mqtt-lora)
+> 5. [Indicaciones de uso](#indicaciones-de-uso)
+
+### Despliegue del servidor
 
 Levantar el contenedor de Thingsboard por primera vez:
 ```bash
-cd platform
-mkdir -p mytb-data && sudo chown -R 799:799 mytb-data
-mkdir -p mytb-logs && sudo chown -R 799:799 mytb-logs
+cd platform/server
 docker compose up -d
-# interfaz a la escucha en http://localhost:8080/
+# ...Interfaz web a la escucha en http://localhost:8080/
 ```
 
 Comandos útiles:
 ```bash
-docker compose logs -f mytb     # Consultar los logs
-docker compose stop mytb        # Detener el contenedor
-docker compose start mytb       # Reanudar el contenedor
+docker compose logs -f tb-server     # Consultar los logs
+docker compose stop tb-server        # Detener el contenedor
+docker compose start tb-server       # Reanudar el contenedor
 ```
 
 Credenciales predeterminadas de la interfaz web:
@@ -29,7 +34,7 @@ Credenciales predeterminadas de la interfaz web:
 
 ---
 
-### Configuración
+### Configuración en Thingsboard
 
 Configuraremos Thingsboard desde su interfaz web.
 
@@ -39,7 +44,7 @@ Para tener los permisos necearios para hacer la configuración, ingresaremos com
 
 **1. Importar recursos.**
 
-El directorio [platform/resources](https://github.com/p4bloOS/thingsboard-updatable-devices/tree/master/platform/resources) contiene los siguientes archivos para preparar Thingsboard para la aplicación de ejemplo:
+El directorio [platform/resources](resources) contiene los siguientes archivos para preparar Thingsboard para la aplicación de ejemplo:
 
 - `micropython_updatable_profile.json`
 
@@ -52,7 +57,7 @@ El directorio [platform/resources](https://github.com/p4bloOS/thingsboard-updata
 - `updatable_devices_dashboard.json`
 
   Panel *Updatable Devices* para visualizar la aplicación de ejemplo y lanzar actualizaciones OTA.
-  (importar desde la sección *Tableros*)
+  (importar desde la sección *Tableros*)conclusión
 
 
 **2. Crear dispositivos**
@@ -60,6 +65,20 @@ El directorio [platform/resources](https://github.com/p4bloOS/thingsboard-updata
 - Desde la sección *Entidades/Dispositivos* crearemos un nuevo dispositivo (p.ej. llamado ESP32-Micropython-device) y le asignaremos el perfil *Micropython Updatable*.
 
 - Desde la misma sección crearemos otro dispositivo (p.ej. llamado RaspberryPiZero-Linux-device) y le asignaremos el perfil *Linux Updatable*.
+
+
+---
+
+### Despliegue del Gateway de Thingsboard
+
+Véase: [platform/tb-gateway/README.md](tb-gateway/README.md)
+
+
+---
+
+### Despliegue del Gateway MQTT-Lora
+
+Véase: [platform/lora-gateway/README.md](lora-gateway/README.md)
 
 
 ---

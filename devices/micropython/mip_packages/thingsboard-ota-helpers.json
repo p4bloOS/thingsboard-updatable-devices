@@ -1,0 +1,43 @@
+{
+  "urls": [
+    [
+      "thingsboard_ota_helpers/__init__.py",
+      "../src/lib/thingsboard_ota_helpers/__init__.py"
+    ],
+    [
+      "thingsboard_ota_helpers/ota_installer.py",
+      "../src/lib/thingsboard_ota_helpers/ota_installer.py"
+    ],
+    [
+      "thingsboard_ota_helpers/updatable_mqtt_client.py",
+      "../src/lib/thingsboard_ota_helpers/updatable_mqtt_client.py"
+    ],
+    [
+      "thingsboard_ota_helpers/updatable_ble_peripheral.py",
+      "../src/lib/thingsboard_ota_helpers/updatable_ble_peripheral.py"
+    ],
+    [
+      "tb_client_sdk/__init__.py",
+      "../src/lib/thingsboard_ota_helpers/__init__.py"
+    ],
+    ["tb_client_sdk/umqtt.py", "../src/external/tb-client-sdk/umqtt.py"],
+    [
+      "tb_client_sdk/sdk_utils.py",
+      "../src/external/tb-client-sdk/sdk_utils.py"
+    ],
+    [
+      "tb_client_sdk/tb_device_mqtt.py",
+      "../src/external/tb-client-sdk/tb_device_mqtt.py"
+    ],
+    [
+      "tb_client_sdk/provision_client.py",
+      "../src/external/tb-client-sdk/provision_client.py"
+    ]
+  ],
+  "deps": [
+    ["tarfile", "latest"],
+    ["logging", "latest"],
+    ["aioble-peripheral", "latest"],
+    ["aioble-server", "latest"]
+  ]
+}

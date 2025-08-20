@@ -1,0 +1,11 @@
+{
+  "urls": [
+    ["boot.py", "../src/boot.py"],
+    ["main.py", "../src/app/ble/main.py"],
+    ["FW_METADATA.json", "../src/app/ble/FW_METADATA.json"],
+    ["lib/utils.py", "../src/lib/utils.py"],
+    ["config/ota_config.json", "../config/ota_config.json"],
+    ["config/connectivity.json", "../config/ble/connectivity.json"],
+    ["config/ble_config.json", "../config/ble/ble_config.json"]
+  ]
+}
