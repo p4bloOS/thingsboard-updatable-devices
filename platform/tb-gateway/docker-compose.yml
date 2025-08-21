@@ -43,12 +43,22 @@ services:
       - tb-gw-config:/tb-gw-config/
       - /var/run/dbus:/var/run/dbus #
       - /dev:/dev #                 # Necesario para usar Bluetooth
-
     # Necessary mapping for Linux
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       - tb-gateway
+
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt-broker
+    restart: always
+    # privileged: true
+    volumes:
+      - ./lora-bridge/mosquitto_config:/mosquitto/config
+      - mosquitto-log:/mosquitto/log
+    ports:
+      - "1884:1883"
 
 # Volumes declaration for configurations, extensions and configuration
 volumes:
@@ -58,3 +68,5 @@ volumes:
     name: tb-gw-logs
   tb-gw-extensions:
     name: tb-gw-extensions
+  mosquitto-log:
+    name: mosquitto-log

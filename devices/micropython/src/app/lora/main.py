@@ -1,6 +1,7 @@
 from machine import Pin, SPI
 import asyncio
 from lora import AsyncSX1276
+from json import dumps as json_dumps
 
 # LoRa dedicated pins in Lilygo board
 LORA_MOSI = 27
@@ -26,7 +27,7 @@ def get_lora_modem():
         "bw": "500",  # kHz
         "coding_rate": 8,
         "preamble_len": 12,
-        "output_power": 0,
+        "output_power": 14,
     }
 
     spi = SPI(
@@ -55,7 +56,14 @@ async def send_coro(modem):
     counter = 0
     while True:
         print("Sending...")
-        await modem.send(f"Hello world from async MicroPython #{counter}".encode())
+        msg = json_dumps({
+            #"model": "ESP32TEMP",
+            "id": "AA:BB:CC:DD:EE:FF",
+            #"tempc": "57"
+            "count": str(counter)
+        }).encode("utf-8")
+        print("mensaje a enviar: ", msg)
+        await modem.send(msg)
         print("Sent!")
         await asyncio.sleep(5)
         counter += 1
