@@ -110,6 +110,35 @@ def get_updatable_ble_peripheral():
     return updatable_ble_peripheral, (mem_free_char, mem_alloc_char, gc_collect_char)
 
 
+def get_updatable_lora_node():
+    from thingsboard_ota_helpers.updatable_lora_node import UpdatableLoraNode
+    from lora import AsyncSX1276
+    from machine import Pin, SPI
+
+    # Lectura de la configuración
+    lora_config = read_config_file("lora_config.json")
+    ota_config = read_config_file("ota_config.json")
+    fw_metadata = read_firmware_metadata()
+
+    # Creación de un modem LoRa adaptado al diseño de la placa Lilygo
+    LORA_MOSI = 27; LORA_MISO = 19; LORA_SCLK = 5; LORA_CS = 18
+    LORA_DIO = 26; LORA_RST = 23; EXTRA_DIO = 35
+    cs = Pin(LORA_CS)
+    spi = SPI(
+        1, baudrate=2000_000, polarity=0, phase=0,
+        miso=Pin(LORA_MISO), mosi=Pin(LORA_MOSI), sck=Pin(LORA_SCLK)
+    )
+    custom_lora_modem = AsyncSX1276(
+        spi, cs, dio0=Pin(LORA_DIO), dio1=Pin(EXTRA_DIO), reset=Pin(LORA_RST), lora_cfg=lora_config
+    )
+
+    return UpdatableLoraNode(
+        lora_modem=custom_lora_modem,
+        fw_current_title=fw_metadata['title'],
+        fw_current_version=fw_metadata['version'],
+        fw_filename=ota_config['tmp_filename']
+    )
+
 
 class OTAReporter():
 
