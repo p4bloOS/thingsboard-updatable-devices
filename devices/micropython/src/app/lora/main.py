@@ -49,12 +49,12 @@ async def main():
     Ejecuta concurrentemente las tareas asíncronas definidas.
     """
     lora_node = utils.get_updatable_lora_node()
-    lora_node.connect()
     lora_node.set_callback(on_message_callback)
     await asyncio.gather(
-        heartbeat_LED(),
+        lora_node.connect(),
         lora_node.listen(),
-        memory_report(lora_node, 2),
+        heartbeat_LED(),
+        memory_report(lora_node, 2)
     )
 
 
