@@ -1,4 +1,4 @@
-import asyncio
+from asyncio import sleep as asyncio_sleep, sleep_ms as asyncio_sleep_ms, gather as asyncio_gather, run as asyncio_run
 from machine import Pin
 from json import dumps as json_dumps
 from gc import mem_free as gc_mem_free, mem_alloc as gc_mem_alloc, collect as gc_collect
@@ -17,7 +17,7 @@ async def memory_report(lora_node, period_s):
         mem_alloc = gc_mem_alloc()
         telemetry = {"memory_free" : mem_free, "memory_allocated": mem_alloc}
         await lora_node.send("telemetry", telemetry)
-        await asyncio.sleep(period_s)
+        await asyncio_sleep(period_s)
 
 
 async def heartbeat_LED():
@@ -29,13 +29,13 @@ async def heartbeat_LED():
     led_pin.off()
     while True:
         led_pin.on()
-        await asyncio.sleep_ms(1700)
+        await asyncio_sleep_ms(1700)
         led_pin.off()
-        await asyncio.sleep_ms(100)
+        await asyncio_sleep_ms(100)
         led_pin.on()
-        await asyncio.sleep_ms(100)
+        await asyncio_sleep_ms(100)
         led_pin.off()
-        await asyncio.sleep_ms(100)
+        await asyncio_sleep_ms(100)
 
 
 def on_message_callback(recv_data):
@@ -50,7 +50,7 @@ async def main():
     """
     lora_node = utils.get_updatable_lora_node()
     lora_node.set_callback(on_message_callback)
-    await asyncio.gather(
+    await asyncio_gather(
         lora_node.connect(),
         lora_node.listen(),
         heartbeat_LED(),
@@ -63,4 +63,4 @@ if __name__ == "__main__":
     Punto de entrada al programa principal
     """
     log.info("Iniciando programa principal")
-    asyncio.run(main())
+    asyncio_run(main())

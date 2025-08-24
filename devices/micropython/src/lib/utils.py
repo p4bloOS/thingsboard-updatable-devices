@@ -152,8 +152,8 @@ class OTAReporter():
             get_custom_logger("updatable_ble_peripheral")
             self.connection_object, _ = get_updatable_ble_peripheral()
         elif type == "LoRa":
-            get_custom_logger("")
-            pass
+            get_custom_logger("updatable_lora_node")
+            self.connection_object = get_updatable_lora_node()
         else:
             raise ValueError(f"Tipo de conexión no soportada ({type}). Use 'Wifi', 'BLE' o 'LoRa'.")
 
@@ -182,7 +182,19 @@ class OTAReporter():
             asyncio.run(async_report())
 
         elif self.type == "LoRa":
-            pass
+            import asyncio
+            async def async_report():
+                listening_task = asyncio.create_task(self.connection_object.listen())
+                failed_telemetry = {
+                    "fw_state": "FAILED", "fw_error": error_msg
+                }
+                await self.connection_object.reliable_send("telemetry", failed_telemetry )
+                listening_task.cancel()
+                try:
+                    await listening_task
+                except asyncio.CancelledError:
+                    log.debug("Escucha terminada")
+            asyncio.run(async_report())
 
 
     def report_succes(self, new_fw_title: str, new_fw_version: str):
@@ -212,7 +224,22 @@ class OTAReporter():
             asyncio.run(async_report())
 
         elif self.type == "LoRa":
-            pass
+            import asyncio
+            async def async_report():
+                listening_task = asyncio.create_task(self.connection_object.listen())
+                updated_telemetry = {
+                    "current_fw_title": new_fw_title,
+                    "current_fw_version": new_fw_version,
+                    "fw_state": "UPDATED"
+                }
+                log.debug("Estableciendo fw_state a UPDATED")
+                await self.connection_object.reliable_send("telemetry", updated_telemetry )
+                listening_task.cancel()
+                try:
+                    await listening_task
+                except asyncio.CancelledError:
+                    log.debug("Escucha terminada")
+            asyncio.run(async_report())
 
     def close_connection(self):
         if (self.type == "Wifi" or self.type == "BLE"):

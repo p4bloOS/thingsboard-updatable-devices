@@ -148,7 +148,7 @@ class UpdatableBLEPeripheral():
         if (self.fw_current_title == fw_title and
             self.fw_current_version == fw_version
         ):
-            log.warning("El firmware recibido desde Thingsboard ya está instalado")
+            log.warning("El firmware indicado desde Thingsboard ya está instalado")
             self.fw_state_char.write("UPDATED".encode('utf-8'))
             return
 

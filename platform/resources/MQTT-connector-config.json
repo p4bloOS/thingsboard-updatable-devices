@@ -1,0 +1,159 @@
+{
+  "broker": {
+    "host": "host.docker.internal",
+    "port": 1884,
+    "version": 5,
+    "clientId": "ThingsBoard_gateway",
+    "security": {
+      "type": "basic",
+      "username": "device",
+      "password": "updatable"
+    },
+    "maxNumberOfWorkers": 100,
+    "maxMessageNumberPerWorker": 10
+  },
+  "mapping": [
+    {
+      "topicFilter": "thingsboard/OMG_ESP32_LORA/LORAtoMQTT/f024f9b18b08/telemetry",
+      "subscriptionQos": 1,
+      "converter": {
+        "type": "json",
+        "deviceInfo": {
+          "deviceNameExpression": "ESP32-Micropython-LoRa-device",
+          "deviceNameExpressionSource": "constant",
+          "deviceProfileExpressionSource": "constant",
+          "deviceProfileExpression": "Micropython-Updatable-profile"
+        },
+        "attributes": [],
+        "timeseries": [
+          {
+            "key": "memory_allocated",
+            "type": "integer",
+            "value": "${msg.memory_allocated}"
+          },
+          {
+            "key": "memory_free",
+            "type": "integer",
+            "value": "${msg.memory_free}"
+          }
+        ]
+      }
+    },
+    {
+      "topicFilter": "thingsboard/OMG_ESP32_LORA/LORAtoMQTT/f024f9b18b08/reliable/attributes",
+      "subscriptionQos": 1,
+      "converter": {
+        "type": "json",
+        "deviceInfo": {
+          "deviceNameExpression": "ESP32-Micropython-LoRa-device",
+          "deviceNameExpressionSource": "constant",
+          "deviceProfileExpressionSource": "constant",
+          "deviceProfileExpression": "Micropython-Updatable-profile"
+        },
+        "attributes": [
+          {
+            "key": "ota_connectivity",
+            "type": "string",
+            "value": "${msg.ota_connectivity}"
+          },
+          {
+            "key": "lora_id",
+            "type": "string",
+            "value": "${msg.lora_id}"
+          }
+        ],
+        "timeseries": []
+      }
+    },
+    {
+      "topicFilter": "thingsboard/OMG_ESP32_LORA/LORAtoMQTT/f024f9b18b08/reliable/telemetry",
+      "subscriptionQos": 1,
+      "converter": {
+        "type": "json",
+        "deviceInfo": {
+          "deviceNameExpression": "ESP32-Micropython-LoRa-device",
+          "deviceNameExpressionSource": "constant",
+          "deviceProfileExpressionSource": "constant",
+          "deviceProfileExpression": "Micropython-Updatable-profile"
+        },
+        "attributes": [],
+        "timeseries": [
+          {
+            "key": "fw_state",
+            "type": "string",
+            "value": "${msg.fw_state}"
+          },
+          {
+            "key": "current_fw_title",
+            "type": "string",
+            "value": "${msg.current_fw_title}"
+          },
+          {
+            "key": "current_fw_version",
+            "type": "string",
+            "value": "${msg.current_fw_version}"
+          }
+        ]
+      }
+    }
+  ],
+  "requestsMapping": {
+    "connectRequests": [
+      {
+        "topicFilter": "thingsboard/OMG_ESP32_LORA/LORAtoMQTT/f024f9b18b08/connect",
+        "deviceInfo": {
+          "deviceNameExpression": "ESP32-Micropython-LoRa-device",
+          "deviceNameExpressionSource": "constant",
+          "deviceProfileExpressionSource": "constant",
+          "deviceProfileExpression": "Micropython-Updatable-profile"
+        }
+      }
+    ],
+    "disconnectRequests": [
+      {
+        "topicFilter": "thingsboard/OMG_ESP32_LORA/LORAtoMQTT/f024f9b18b08/disconnect",
+        "deviceInfo": {
+          "deviceNameExpression": "ESP32-Micropython-LoRa-device",
+          "deviceNameExpressionSource": "constant"
+        }
+      }
+    ],
+    "attributeRequests": [
+      {
+        "retain": false,
+        "topicFilter": "v1/devices/me/attributes/request",
+        "deviceInfo": {
+          "deviceNameExpressionSource": "message",
+          "deviceNameExpression": "${serialNumber}"
+        },
+        "attributeNameExpressionSource": "message",
+        "attributeNameExpression": "${versionAttribute}, ${pduAttribute}",
+        "topicExpression": "devices/${deviceName}/attrs",
+        "valueExpression": "${attributeKey}: ${attributeValue}"
+      }
+    ],
+    "attributeUpdates": [
+      {
+        "deviceNameFilter": "ESP32-Micropython-LoRa-device",
+        "attributeFilter": ".*",
+        "topicExpression": "thingsboard/OMG_ESP32_LORA/commands/MQTTtoLORA/reliable/f024f9b18b08",
+        "valueExpression": "{\"${attributeKey}\":\"${attributeValue}\"}",
+        "retain": true
+      }
+    ],
+    "serverSideRpc": [
+      {
+        "type": "oneWay",
+        "deviceNameFilter": "ESP32-Micropython-LoRa-device",
+        "methodFilter": "garbage_collection",
+        "requestTopicExpression": "thingsboard/OMG_ESP32_LORA/commands/MQTTtoLORA/reliable/f024f9b18b08",
+        "valueExpression": "{ \"rpc\" : \"garbage_collection\" }"
+      }
+    ]
+  },
+  "name": "LoRa-Bridge-MQTT-Connector",
+  "id": "44e8df5a-da95-427d-9698-7102f16909e6",
+  "logLevel": "DEBUG",
+  "enableRemoteLogging": true,
+  "configVersion": "3.7.6"
+}

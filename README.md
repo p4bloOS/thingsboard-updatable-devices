@@ -13,10 +13,11 @@ Ramas de características desarrolladas hasta la fecha:
 - [x] 01-minimum_iot_system
 - [x] 02-basic_ota_update
 - [x] 03-improved_ota_update
-- [ ] 04-ble_support
-- [ ] 05-lora_support
-- [ ] 06-adaptation_to_linux
-- [ ] 07-final_revision
+- [x] 04-ble_support
+- [x] 05-lora_support
+- [ ] 06-usability-improvements
+- [ ] 07-adaptation_to_linux
+- [ ] 08-final_revision
 
 
 ## Características relevantes
