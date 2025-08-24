@@ -10,5 +10,5 @@
     "lib/thingsboard_ota_helpers/",
     "lib/utils.py"
   ],
-  "clear_filesystem": true
+  "clear_filesystem": false
 }

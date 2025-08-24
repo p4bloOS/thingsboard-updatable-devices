@@ -1,1 +1,13 @@
-{}
+{
+  "freq_khz": 868000,
+  "sf": 7,
+  "bw": "125",
+  "coding_rate": 5,
+  "preamble_len": 8,
+  "output_power": 14,
+  "crc_en": true,
+  "tx_ant": "PA_BOOST",
+  "rx_boost": true,
+  "lna_gain": 1,
+  "lna_boost_hf": 3
+}

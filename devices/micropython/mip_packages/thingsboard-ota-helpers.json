@@ -17,6 +17,10 @@
       "../src/lib/thingsboard_ota_helpers/updatable_ble_peripheral.py"
     ],
     [
+      "thingsboard_ota_helpers/updatable_lora_node.py",
+      "../src/lib/thingsboard_ota_helpers/updatable_lora_node.py"
+    ],
+    [
       "tb_client_sdk/__init__.py",
       "../src/lib/thingsboard_ota_helpers/__init__.py"
     ],
@@ -38,6 +42,8 @@
     ["tarfile", "latest"],
     ["logging", "latest"],
     ["aioble-peripheral", "latest"],
-    ["aioble-server", "latest"]
+    ["aioble-server", "latest"],
+    ["lora-async", "latest"],
+    ["lora-sx127x", "latest"]
   ]
 }

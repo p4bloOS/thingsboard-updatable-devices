@@ -10,13 +10,11 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-    # Environment variables
     environment:
       - host=host.docker.internal
       - port=1883
       - accessToken=ODyKE7h3knqdIwdcIEcm
 
-    # Volumes bind
     volumes:
       - tb-gw-config:/thingsboard_gateway/config
       - tb-gw-logs:/thingsboard_gateway/logs
@@ -24,31 +22,48 @@ services:
       - /var/run/dbus:/var/run/dbus #
       - /dev:/dev #                 # Necesario para usar Bluetooth
 
-    # Ports bindings - required by some connectors
-    #ports:
-    # - "5000:5000" # Comment if you don't use REST connector and change if you use another port
-    # Uncomment and modify the following ports based on connector usage:
-    #        - "1052:1052" # BACnet connector
-    #        - "5026:5026" # Modbus TCP connector (Modbus Slave)
-    #        - "50000:50000/tcp" # Socket connector with type TCP
-    #        - "50000:50000/udp" # Socket connector with type UDP
-
-  ble-ota-transfer:
+  ota-transfer:
     build:
-      context: ./ble-ota-transfer-service
-      # dockerfile: Dockerfile
+      context: ./ota-transfer-service
+    container_name: ota-transfer
     ports:
       - "5000:5000"
     volumes:
       - tb-gw-config:/tb-gw-config/
       - /var/run/dbus:/var/run/dbus #
       - /dev:/dev #                 # Necesario para usar Bluetooth
-
     # Necessary mapping for Linux
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       - tb-gateway
+
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt-broker
+    restart: always
+    # privileged: true
+    volumes:
+      - ./lora-bridge/mosquitto_config:/mosquitto/config
+      - mosquitto-log:/mosquitto/log
+    ports:
+      - "1884:1883"
+
+  lora-reliability-manager:
+    build:
+      context: ./lora-bridge/reliability_manager
+    container_name: lora-reliability-manager
+    extra_hosts:
+      # Necessary mapping for Linux
+      - "host.docker.internal:host-gateway"
+    environment:
+      - mqtt_user=device
+      - mqtt_password=updatable
+      # Lista separada por comas de los identificadores de dispositivos LoRa en la red
+      # (se obtienen a partir de la MAC Wifi del dispositivo)
+      - device_id_list=f024f9b18b08
+    depends_on:
+      - mqtt-broker
 
 # Volumes declaration for configurations, extensions and configuration
 volumes:
@@ -58,3 +73,5 @@ volumes:
     name: tb-gw-logs
   tb-gw-extensions:
     name: tb-gw-extensions
+  mosquitto-log:
+    name: mosquitto-log

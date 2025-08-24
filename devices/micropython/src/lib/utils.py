@@ -110,6 +110,35 @@ def get_updatable_ble_peripheral():
     return updatable_ble_peripheral, (mem_free_char, mem_alloc_char, gc_collect_char)
 
 
+def get_updatable_lora_node():
+    from thingsboard_ota_helpers.updatable_lora_node import UpdatableLoraNode
+    from lora import AsyncSX1276
+    from machine import Pin, SPI
+
+    # Lectura de la configuración
+    lora_config = read_config_file("lora_config.json")
+    ota_config = read_config_file("ota_config.json")
+    fw_metadata = read_firmware_metadata()
+
+    # Creación de un modem LoRa adaptado al diseño de la placa Lilygo
+    LORA_MOSI = 27; LORA_MISO = 19; LORA_SCLK = 5; LORA_CS = 18
+    LORA_DIO = 26; LORA_RST = 23; EXTRA_DIO = 35
+    cs = Pin(LORA_CS)
+    spi = SPI(
+        1, baudrate=2000_000, polarity=0, phase=0,
+        miso=Pin(LORA_MISO), mosi=Pin(LORA_MOSI), sck=Pin(LORA_SCLK)
+    )
+    custom_lora_modem = AsyncSX1276(
+        spi, cs, dio0=Pin(LORA_DIO), dio1=Pin(EXTRA_DIO), reset=Pin(LORA_RST), lora_cfg=lora_config
+    )
+
+    return UpdatableLoraNode(
+        lora_modem=custom_lora_modem,
+        fw_current_title=fw_metadata['title'],
+        fw_current_version=fw_metadata['version'],
+        fw_filename=ota_config['tmp_filename']
+    )
+
 
 class OTAReporter():
 
@@ -123,8 +152,8 @@ class OTAReporter():
             get_custom_logger("updatable_ble_peripheral")
             self.connection_object, _ = get_updatable_ble_peripheral()
         elif type == "LoRa":
-            get_custom_logger("")
-            pass
+            get_custom_logger("updatable_lora_node")
+            self.connection_object = get_updatable_lora_node()
         else:
             raise ValueError(f"Tipo de conexión no soportada ({type}). Use 'Wifi', 'BLE' o 'LoRa'.")
 
@@ -153,7 +182,19 @@ class OTAReporter():
             asyncio.run(async_report())
 
         elif self.type == "LoRa":
-            pass
+            import asyncio
+            async def async_report():
+                listening_task = asyncio.create_task(self.connection_object.listen())
+                failed_telemetry = {
+                    "fw_state": "FAILED", "fw_error": error_msg
+                }
+                await self.connection_object.reliable_send("telemetry", failed_telemetry )
+                listening_task.cancel()
+                try:
+                    await listening_task
+                except asyncio.CancelledError:
+                    log.debug("Escucha terminada")
+            asyncio.run(async_report())
 
 
     def report_succes(self, new_fw_title: str, new_fw_version: str):
@@ -183,7 +224,22 @@ class OTAReporter():
             asyncio.run(async_report())
 
         elif self.type == "LoRa":
-            pass
+            import asyncio
+            async def async_report():
+                listening_task = asyncio.create_task(self.connection_object.listen())
+                updated_telemetry = {
+                    "current_fw_title": new_fw_title,
+                    "current_fw_version": new_fw_version,
+                    "fw_state": "UPDATED"
+                }
+                log.debug("Estableciendo fw_state a UPDATED")
+                await self.connection_object.reliable_send("telemetry", updated_telemetry )
+                listening_task.cancel()
+                try:
+                    await listening_task
+                except asyncio.CancelledError:
+                    log.debug("Escucha terminada")
+            asyncio.run(async_report())
 
     def close_connection(self):
         if (self.type == "Wifi" or self.type == "BLE"):
